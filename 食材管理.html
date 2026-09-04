@@ -976,12 +976,10 @@
 
         let foods = [];
         let stock = {};
-        let cookHistory = []; // 每次制作的记录
+        let cookHistory = [];
         let currentChild = 'girl';
         let currentMatchResult = null;
-
-        // 用量弹窗的上下文
-        let usageContext = null; // { type: 'trial'|'cook'|'match', foodIds: [], foods: [], onConfirm: function }
+        let usageContext = null;
 
         // ============================================================
         //  存储函数
@@ -1308,7 +1306,6 @@
                     `;
 
             document.getElementById('btnUseMatch')?.addEventListener('click', function() {
-                // 打开用量弹窗，合并两道菜的食材
                 const allFoods = [girlDish, boyDish];
                 openUsageModal('match', allFoods);
             });
@@ -1363,7 +1360,6 @@
         //  用量弹窗
         // ============================================================
         function openUsageModal(type, foodList) {
-            // 合并所有食材
             const ingredientMap = {};
             for (const f of foodList) {
                 if (f.ingredients) {
@@ -1391,7 +1387,6 @@
                         </div>
                     `).join('');
 
-            // 计算总量（动态）
             const updateTotal = () => {
                 const inputs = list.querySelectorAll('.usage-qty');
                 let total = 0;
@@ -1410,12 +1405,10 @@
             });
             updateTotal();
 
-            // 保存上下文
             usageContext = {
                 type: type,
                 foods: foodList,
                 onConfirm: function(consumed) {
-                    // 检查库存
                     for (const [name, qty] of Object.entries(consumed)) {
                         if (getStockQty(name) < qty) {
                             alert(`❌ ${name} 库存不足（需要 ${qty} ${getStockUnit(name)}，只剩 ${getStockQty(name)} ${getStockUnit(name)}），请先补货！`);
@@ -1423,14 +1416,12 @@
                         }
                     }
 
-                    // 扣减库存
                     for (const [name, qty] of Object.entries(consumed)) {
                         stock[name].qty -= qty;
                         if (stock[name].qty < 0) stock[name].qty = 0;
                     }
                     saveStock();
 
-                    // 记录制作历史
                     const now = Date.now();
                     for (const f of foodList) {
                         cookHistory.push({
@@ -1444,7 +1435,6 @@
                     }
                     saveHistory();
 
-                    // 如果是待定试吃，标记 trial.done = true
                     if (type === 'trial') {
                         for (const f of foodList) {
                             if (f.status === 'pending') {
@@ -1453,17 +1443,6 @@
                         }
                         saveFoods();
                     }
-
-                    // 如果是匹配（正餐），记录到对应孩子（如果还没有归属）
-                    if (type === 'match') {
-                        for (const f of foodList) {
-                            if (f.status === 'pending' && f.child === null) {
-                                // 保留在待定，但已试吃，等待分配
-                            }
-                        }
-                    }
-
-                    // 如果是 "做这道菜" (cook)，记录即可
 
                     alert(`✅ 制作完成！已扣减库存。`);
                     closeUsageModal();
@@ -1480,7 +1459,6 @@
             usageContext = null;
         }
 
-        // 确认制作
         document.getElementById('btnUsageConfirm').addEventListener('click', function() {
             if (!usageContext) return;
             const inputs = document.querySelectorAll('.usage-qty');
@@ -1552,7 +1530,6 @@
         //  事件绑定
         // ============================================================
 
-        // 切换标签
         document.getElementById('tabGirl').addEventListener('click', function() { currentChild = 'girl';
             currentMatchResult = null;
             renderAll(); });
@@ -1563,7 +1540,6 @@
             currentMatchResult = null;
             renderAll(); });
 
-        // 食材标签
         const ingredientTags = document.getElementById('ingredientTags');
         const ingredientInput = document.getElementById('ingredientInput');
         let tempIngredients = [];
@@ -1595,7 +1571,6 @@
             });
         }
 
-        // 保存食物（只记录，不扣库存）
         document.getElementById('btnSaveFood').addEventListener('click', function() {
             const name = document.getElementById('foodName').value.trim();
             if (!name) { alert('请输入食物名称'); return; }
@@ -1626,7 +1601,6 @@
             document.getElementById('foodName').focus();
         });
 
-        // 待定操作：试吃 / 分配
         document.getElementById('foodList').addEventListener('click', function(e) {
             const target = e.target.closest('button');
             if (!target) return;
@@ -1635,13 +1609,11 @@
             const food = foods.find(f => f.id === id);
             if (!food) return;
 
-            // 做一次试试 → 打开用量弹窗
             if (target.classList.contains('btn-trial')) {
                 openUsageModal('trial', [food]);
                 return;
             }
 
-            // 分配归属
             if (target.classList.contains('btn-assign-girl') ||
                 target.classList.contains('btn-assign-boy') ||
                 target.classList.contains('btn-assign-both') ||
@@ -1672,7 +1644,6 @@
             }
         });
 
-        // 搭配
         document.getElementById('btnMatch').addEventListener('click', function() {
             const timeFilter = document.getElementById('matchTime').value;
             const diffFilter = document.getElementById('matchDifficulty').value;
@@ -1684,7 +1655,6 @@
             document.getElementById('btnMatch').click();
         });
 
-        // 库存弹窗
         const stockModal = document.getElementById('stockModal');
         document.getElementById('btnStockEdit').addEventListener('click', function() {
             renderStockEditModal();
@@ -1753,7 +1723,6 @@
             }
         });
 
-        // 清空
         document.getElementById('btnClearCurrent').addEventListener('click', function() {
             const label = getChildLabel(currentChild);
             if (confirm(`确定清空「${label}」的所有记录吗？`)) {
@@ -1778,7 +1747,6 @@
             }
         });
 
-        // 统计切换
         document.querySelectorAll('[data-period]').forEach(el => {
             el.addEventListener('click', function() {
                 document.querySelectorAll('[data-period]').forEach(b => b.classList.remove('active'));
@@ -1787,7 +1755,6 @@
             });
         });
 
-        // 点击模态框外部关闭
         stockModal.addEventListener('click', function(e) {
             if (e.target === this) this.classList.add('hidden');
         });
