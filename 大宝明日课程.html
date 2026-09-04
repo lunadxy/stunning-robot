@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>明日课表</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+    font-family: -apple-system, "PingFang SC", serif;
+    background: #f0ece4;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.card {
+    background: #f5f0e8;
+    padding: 36px 32px 28px;
+    border-radius: 20px;
+    max-width: 380px;
+    width: 100%;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.10);
+    text-align: left;
+    line-height: 1.9;
+}
+.day-title {
+    text-align: center;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    padding-bottom: 14px;
+    margin-bottom: 16px;
+    border-bottom: 2px solid #d4c5b0;
+}
+.course-list {
+    font-size: 17px;
+    padding: 4px 0;
+}
+.course-item {
+    padding: 2px 0;
+}
+.footer {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1.5px solid #d4c5b0;
+    text-align: center;
+    font-size: 15px;
+    font-weight: 500;
+    opacity: 0.85;
+    letter-spacing: 0.5px;
+    color: #4a3a2a;
+}
+.refresh-btn {
+    display: block;
+    margin: 24px auto 0;
+    padding: 12px 32px;
+    background: #d4c5b0;
+    border: none;
+    border-radius: 30px;
+    font-size: 16px;
+    color: #4a3a2a;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.refresh-btn:active {
+    background: #c0b09a;
+}
+.no-class {
+    text-align: center;
+    font-size: 20px;
+    padding: 20px 0;
+}
+</style>
+</head>
+<body>
+
+<div class="card" id="card">
+    <!-- 内容由 JavaScript 动态生成 -->
+</div>
+
+<script>
+(function(){
+    var weekdays = ["周日","周一","周二","周三","周四","周五","周六"];
+
+    // 获取明天是星期几
+    var today = new Date().getDay(); // 0=周日, 1=周一, ...
+    var tomorrowIndex = (today + 1) % 7;
+    var tomorrow = weekdays[tomorrowIndex];
+
+    var schedule = {
+        "周一": ["第1节 数学", "第2节 美术", "第3节 科学", "第4节 体育", "第5节 道法", "第6节 班队"],
+        "周二": ["第1节 体育", "第2节 语文", "第3节 英语", "第4节 数学", "第5节 书法", "第6节 美术"],
+        "周三": ["第1节 数学", "第2节 体育", "第3节 音乐", "第4节 英语", "第5节 语文", "第6节 语文"],
+        "周四": ["第1节 语文", "第2节 语文", "第3节 音乐", "第4节 体育", "第5节 科学", "第6节 劳动"],
+        "周五": ["第1节 语文", "第2节 数学", "第3节 英语", "第4节 信息科技", "第5节 道法", "第6节 体育"]
+    };
+
+    var yangming = [
+        "知行合一","致良知，事上练","破山中贼易，破心中贼难","人须在事上磨，方立得住","志不立，天下无可成之事",
+        "心即理也","无善无恶心之体，有善有恶意之动，知善知恶是良知，为善去恶是格物","种树者必培其根，种德者必养其心",
+        "此心光明，亦复何言","静时念念去人欲，存天理；动时念念去人欲，存天理","身之主宰便是心，心之所发便是意",
+        "良知者，心之本体","不贵于无过，而贵于能改过","人胸中各有个圣人，只自信不及，都自埋倒了",
+        "惟天下之至诚，然后能立天下之大本","故立志者，为学之心也；为学者，立志之事也","学须反己，若徒责人，只见得人不是，不见自己非",
+        "问君何事日憧憧，烦恼场中错用功","知是行的主意，行是知的功夫","知是行之始，行是知之成",
+        "未有知而不行者，知而不行只是未知","圣学只一个功夫，知行不可分作两事","我今说个知行合一，正要人晓得一念发动处便即是行了",
+        "身外之物，何须挂怀","但学得其道，不以贫贱而有慕于外，不以富贵而有动于中","随遇而安，乐天知命",
+        "心存良知，虽凡夫俗子，皆可为圣贤","良知即是独知时，此知之外更无知","千圣皆过影，良知乃吾师",
+        "人人自有定盘针，万化根源总在心","却笑从前颠倒见，枝枝叶叶外头寻","无声无臭独知时，此是乾坤万有基",
+        "抛却自家无尽藏，沿门持钵效贫儿","饥来吃饭倦来眠，只此修行玄更玄","说与世人浑不信，却从身外觅神仙",
+        "人人有路透长安，坦坦平平一直看","尽道圣贤须有秘，翻嫌易简却求难","只闻风动竹，便觉是人心",
+        "凡谋其力之所不及，而强其知之所不能者，皆不得为致良知","心外无物，心外无理","正心诚意，格物致知",
+        "常快活便是功夫","人生大病，只是一傲字","谦者，众善之基；傲者，众恶之魁",
+        "处朋友，务相下则得益，相上则损","悔悟是去病之药，然以改之为贵","日间工夫觉纷扰，则静坐；觉懒看书，则且看书，是亦因病而药",
+        "人须有为己之心，方能克己；能克己，方能成己","一念开明，反身而诚","理虽万殊，而心唯一"
+    ];
+
+    var mao = [
+        "好好学习，天天向上","世上无难事，只要肯登攀","星星之火，可以燎原","一万年太久，只争朝夕",
+        "自信人生二百年，会当水击三千里","战略上藐视敌人，战术上重视敌人","没有调查，就没有发言权",
+        "雄关漫道真如铁，而今迈步从头越","不管风吹浪打，胜似闲庭信步","为人民服务",
+        "俱往矣，数风流人物，还看今朝","江山如此多娇，引无数英雄竞折腰","天若有情天亦老，人间正道是沧桑",
+        "坐地日行八万里，巡天遥看一千河","为有牺牲多壮志，敢教日月换新天","不到长城非好汉",
+        "踏遍青山人未老，风景这边独好","敌军围困万千重，我自岿然不动","怅寥廓，问苍茫大地，谁主沉浮",
+        "指点江山，激扬文字，粪土当年万户侯","雄鸡一唱天下白","风雨送春归，飞雪迎春到",
+        "已是悬崖百丈冰，犹有花枝俏","待到山花烂漫时，她在丛中笑","牢骚太盛防肠断，风物长宜放眼量",
+        "独有英雄驱虎豹，更无豪杰怕熊罴","梅花欢喜漫天雪，冻死苍蝇未足奇","忍看朋辈成新鬼，怒向刀丛觅小诗",
+        "军民团结如一人，试看天下谁能敌","世界是你们的，也是我们的，但归根结底是你们的",
+        "你们青年人朝气蓬勃，正在兴旺时期，好像早晨八九点钟的太阳","学习不是容易的事情，使用更加不容易",
+        "读书是学习，使用也是学习，而且是更重要的学习","从战争中学习战争","实践出真知",
+        "你要知道梨子的滋味，就要亲口尝一尝","真理的标准只能是社会的实践","知识的问题是一个科学问题，来不得半点虚伪和骄傲",
+        "虚心使人进步，骄傲使人落后","人定胜天","与天奋斗，其乐无穷；与地奋斗，其乐无穷",
+        "群众是真正的英雄","卑贱者最聪明，高贵者最愚蠢","人不犯我，我不犯人；人若犯我，我必犯人",
+        "一切反动派都是纸老虎","全心全意为人民服务","下定决心，不怕牺牲，排除万难，去争取胜利",
+        "中国人死都不怕，还怕困难么","我们正在前进，我们正在做我们的前人从来没有做过的极其光荣伟大的事业",
+        "人民万岁"
+    ];
+
+    function render() {
+        var courses = schedule[tomorrow];
+        var card = document.getElementById('card');
+
+        if (!courses) {
+            card.innerHTML = '<div class="no-class">🎉 明天没课，好好休息吧！</div>';
+            return;
+        }
+
+        // 随机选语录
+        var allQuotes = [];
+        for (var i = 0; i < yangming.length; i++) {
+            allQuotes.push({ text: yangming[i], type: "yangming" });
+        }
+        for (var i = 0; i < mao.length; i++) {
+            allQuotes.push({ text: mao[i], type: "mao" });
+        }
+        var selected = allQuotes[Math.floor(Math.random() * allQuotes.length)];
+        var quoteText = selected.text;
+        var isMao = (selected.type === "mao");
+
+        var textColor = isMao ? "#8b2500" : "#2d5a3d";
+        var lineColor = isMao ? "#d4a0a0" : "#7cb083";
+        var typeLabel = isMao ? "毛泽东" : "王阳明";
+        var typeEmoji = isMao ? "⭐" : "🌿";
+
+        // 生成课程列表HTML
+        var courseHtml = '';
+        for (var i = 0; i < courses.length; i++) {
+            courseHtml += '<div class="course-item">' + courses[i] + '</div>';
+        }
+
+        var html = `
+            <div class="day-title" style="border-bottom-color: ${lineColor};">📅 明日 ${tomorrow}</div>
+            <div class="course-list" style="color: ${textColor};">
+                ${courseHtml}
+            </div>
+            <div class="footer" style="border-top-color: ${lineColor}; color: ${textColor};">
+                ${typeEmoji} 「${quoteText}」 —— ${typeLabel}
+            </div>
+            <button class="refresh-btn" onclick="location.reload()">🔄 换一句</button>
+        `;
+        card.innerHTML = html;
+    }
+
+    render();
+})();
+</script>
+
+</body>
+</html>
