@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>📖 单元1 · 单词学习</title>
+    <style>
+        /* ===== 全部样式（与之前保持一致）===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px 14px;
+            margin: 0;
+            background: linear-gradient(145deg, #e8e6f0 0%, #d5d8e8 35%, #dce4ee 70%, #e4e6f0 100%);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: rgba(248, 248, 252, 0.55);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border-radius: 32px;
+            padding: 24px 18px 26px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            box-shadow: 0 12px 48px rgba(120, 140, 200, 0.08);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(180, 190, 210, 0.12);
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 400;
+            color: #4a4a62;
+            letter-spacing: 1px;
+        }
+
+        .header .progress-text {
+            font-size: 13px;
+            color: #7a7a98;
+            background: rgba(180, 190, 215, 0.12);
+            padding: 3px 14px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .progress-bar-wrap {
+            width: 100%;
+            height: 4px;
+            background: rgba(180, 190, 210, 0.15);
+            border-radius: 4px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .progress-bar-wrap .bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #8a9ab8, #b0a8c4);
+            border-radius: 4px;
+            transition: width 0.4s ease;
+        }
+
+        .mode-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+
+        .mode-tabs .tab {
+            flex: 1;
+            padding: 8px 0;
+            border: none;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 400;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: rgba(255, 255, 255, 0.1);
+            color: #9a9ab8;
+            font-family: inherit;
+            letter-spacing: 0.3px;
+        }
+
+        .mode-tabs .tab:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .mode-tabs .tab.active {
+            background: rgba(255, 255, 255, 0.3);
+            color: #4a4a62;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .content {
+            min-height: 280px;
+        }
+
+        /* ===== 学习模式 ===== */
+        .study-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .word-card {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
+            border-radius: 14px;
+            padding: 14px 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .word-card .en {
+            font-size: 15px;
+            color: #4a4a62;
+            font-weight: 500;
+            font-family: "Segoe UI", sans-serif;
+        }
+
+        .word-card .zh {
+            font-size: 13px;
+            color: #8a8aa8;
+            margin-top: 4px;
+        }
+
+        .word-card .sound-btn {
+            background: none;
+            border: none;
+            color: #b0b0c8;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 4px 8px;
+            margin-top: 4px;
+            transition: color 0.2s;
+            border-radius: 8px;
+        }
+
+        .word-card .sound-btn:hover {
+            color: #6a6a88;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .word-card .sound-btn:active {
+            transform: scale(0.9);
+        }
+
+        .word-card .mastered-badge {
+            font-size: 11px;
+            color: #8a9ab8;
+            display: block;
+            margin-top: 2px;
+        }
+
+        /* ===== 连连看 ===== */
+        .match-container {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .match-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .match-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .match-header {
+            font-size: 12px;
+            color: #9a9ab8;
+            text-align: center;
+            margin-bottom: 2px;
+            letter-spacing: 0.5px;
+        }
+
+        .match-item {
+            padding: 12px 8px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid rgba(180, 190, 210, 0.15);
+            background: rgba(255, 255, 255, 0.15);
+            color: #4a4a62;
+            font-family: inherit;
+            min-height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+
+        .match-item:active {
+            transform: scale(0.96);
+        }
+
+        .match-item.selected {
+            border-color: #8a9ab8;
+            background: rgba(138, 154, 184, 0.15);
+        }
+
+        .match-item.correct {
+            border-color: #8a9ab8;
+            background: rgba(138, 154, 184, 0.1);
+            opacity: 0.5;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .match-item.wrong {
+            border-color: #d4a0a8;
+            background: rgba(200, 120, 130, 0.1);
+            animation: shake 0.3s ease;
+        }
+
+        @keyframes shake {
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+            25% {
+                transform: translateX(-6px);
+            }
+            75% {
+                transform: translateX(6px);
+            }
+        }
+
+        .match-result {
+            text-align: center;
+            font-size: 14px;
+            color: #7a7a98;
+            margin-top: 4px;
+        }
+
+        /* ===== 拼写模式（重点修改） ===== */
+        .spell-area {
+            text-align: center;
+        }
+
+        .spell-area .spell-zh {
+            font-size: 34px;
+            color: #4a4a62;
+            font-weight: 300;
+            margin-bottom: 6px;
+        }
+
+        .spell-area .spell-hint {
+            font-size: 13px;
+            color: #b0b0c8;
+            margin-bottom: 16px;
+            min-height: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .spell-area .spell-hint .hint-text {
+            transition: all 0.3s ease;
+        }
+
+        .spell-area .spell-hint .hint-text.answer-shown {
+            color: #c48a8a;
+            font-weight: 500;
+        }
+
+        .spell-area .spell-hint .hint-text.answer-hidden {
+            color: #b0b0c8;
+        }
+
+        .spell-area .spell-input-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .spell-area .spell-input-row input {
+            flex: 1;
+            max-width: 220px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(180, 190, 210, 0.15);
+            background: rgba(255, 255, 255, 0.3);
+            font-size: 18px;
+            font-family: "Segoe UI", sans-serif;
+            color: #4a4a62;
+            outline: none;
+            text-align: center;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .spell-area .spell-input-row input:focus {
+            border-color: rgba(138, 154, 184, 0.25);
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .spell-area .spell-input-row input:disabled {
+            opacity: 0.4;
+        }
+
+        .spell-area .spell-input-row input.wrong-input {
+            border-color: #d4a0a8;
+            background: rgba(200, 120, 130, 0.06);
+        }
+
+        .spell-area .spell-input-row input.showing-answer {
+            border-color: #d4a0a8;
+        }
+
+        .spell-area .spell-input-row button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(138, 154, 184, 0.15);
+            color: #4a4a62;
+            font-size: 14px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .spell-area .spell-input-row button:hover {
+            background: rgba(138, 154, 184, 0.25);
+        }
+
+        .spell-area .spell-input-row button:active {
+            transform: scale(0.95);
+        }
+
+        .spell-area .spell-feedback {
+            margin-top: 12px;
+            font-size: 15px;
+            min-height: 28px;
+            color: #7a7a98;
+        }
+
+        .spell-area .spell-feedback .correct {
+            color: #6a9a88;
+        }
+
+        .spell-area .spell-feedback .wrong {
+            color: #c48a8a;
+        }
+
+        .spell-area .spell-progress {
+            font-size: 13px;
+            color: #b0b0c8;
+            margin-top: 10px;
+        }
+
+        /* ===== 完成状态 ===== */
+        .complete-msg {
+            text-align: center;
+            padding: 30px 0;
+            color: #7a7a98;
+        }
+
+        .complete-msg .icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .complete-msg .sub {
+            font-size: 14px;
+            color: #b0b0c8;
+            margin-top: 4px;
+        }
+
+        .btn-reset {
+            margin-top: 14px;
+            padding: 10px 28px;
+            border: 1px solid rgba(180, 190, 210, 0.15);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.15);
+            color: #7a7a98;
+            font-size: 13px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .btn-reset:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 400px) {
+            .container {
+                padding: 18px 12px 20px;
+                border-radius: 24px;
+            }
+            .study-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 6px;
+            }
+            .word-card .en {
+                font-size: 13px;
+            }
+            .word-card .zh {
+                font-size: 12px;
+            }
+            .spell-area .spell-zh {
+                font-size: 26px;
+            }
+            .match-item {
+                font-size: 12px;
+                padding: 10px 6px;
+                min-height: 40px;
+            }
+            .mode-tabs .tab {
+                font-size: 11px;
+                padding: 6px 0;
+            }
+            .header h1 {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <div class="header">
+            <h1>📖 单元1</h1>
+            <span class="progress-text" id="progressText">0 / 12</span>
+        </div>
+
+        <div class="progress-bar-wrap">
+            <div class="bar" id="progressBar"></div>
+        </div>
+
+        <div class="mode-tabs">
+            <button class="tab active" data-mode="study">📚 学习</button>
+            <button class="tab" data-mode="match">🔗 连连看</button>
+            <button class="tab" data-mode="spell">✏️ 拼写</button>
+        </div>
+
+        <div class="content" id="content"></div>
+
+    </div>
+
+    <script>
+        // ============================================================
+        //  单词数据
+        // ============================================================
+        var WORD_LIST = [
+            { en: 'save', zh: '保存；拯救' },
+            { en: 'spend', zh: '花费；度过' },
+            { en: 'pocket money', zh: '零花钱' },
+            { en: 'shopkeeper', zh: '店主' },
+            { en: 'golden touch', zh: '点石成金' },
+            { en: 'gold', zh: '金子；金色' },
+            { en: 'everything', zh: '一切；所有事物' },
+            { en: 'smile', zh: '微笑' },
+            { en: 'clang', zh: '铿锵声；叮当声' },
+            { en: 'saving', zh: '储蓄；存款' },
+            { en: 'crayon', zh: '蜡笔' },
+            { en: 'surprise', zh: '惊喜；使惊讶' }
+        ];
+
+        // ============================================================
+        //  状态
+        // ============================================================
+        var currentMode = 'study';
+        var mastered = {};
+        var spellQueue = [];
+        var spellIndex = 0;
+        var spellWrongWords = [];
+        var matchWords = [];
+        var matchSelected = null;
+        var matchSelectedItem = null;
+        var matchPairs = {};
+        var matchCorrectCount = 0;
+
+        // ---- 拼写模式状态 ----
+        var spellJustWrong = false;
+        var spellCurrentEn = '';
+        var spellIsShowingAnswer = false; // 是否正在显示答案
+
+        // ============================================================
+        //  存储
+        // ============================================================
+        function loadProgress() {
+            try {
+                var raw = localStorage.getItem('word_mastered_unit1');
+                if (raw) {
+                    mastered = JSON.parse(raw);
+                } else {
+                    mastered = {};
+                    WORD_LIST.forEach(function(w) { mastered[w.en] = false; });
+                }
+            } catch (_) {
+                mastered = {};
+                WORD_LIST.forEach(function(w) { mastered[w.en] = false; });
+            }
+            WORD_LIST.forEach(function(w) {
+                if (!(w.en in mastered)) {
+                    mastered[w.en] = false;
+                }
+            });
+            saveProgress();
+        }
+
+        function saveProgress() {
+            try {
+                localStorage.setItem('word_mastered_unit1', JSON.stringify(mastered));
+            } catch (_) {}
+        }
+
+        // ============================================================
+        //  工具
+        // ============================================================
+        function shuffle(arr) {
+            for (var i = arr.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var temp = arr[i];
+                arr[i] = arr[j];
+                arr[j] = temp;
+            }
+            return arr;
+        }
+
+        function getMasteredCount() {
+            var count = 0;
+            for (var key in mastered) {
+                if (mastered[key]) count++;
+            }
+            return count;
+        }
+
+        function getTotalCount() {
+            return WORD_LIST.length;
+        }
+
+        function getUnmastered() {
+            var result = [];
+            WORD_LIST.forEach(function(w) {
+                if (!mastered[w.en]) result.push(w);
+            });
+            return result;
+        }
+
+        function speak(text) {
+            if (!window.speechSynthesis) return;
+            window.speechSynthesis.cancel();
+            var utter = new SpeechSynthesisUtterance(text);
+            utter.lang = 'en-US';
+            utter.rate = 0.85;
+            utter.pitch = 1;
+            window.speechSynthesis.speak(utter);
+        }
+
+        // ============================================================
+        //  更新进度
+        // ============================================================
+        function updateProgress() {
+            var total = getTotalCount();
+            var masteredCount = getMasteredCount();
+            document.getElementById('progressText').textContent = masteredCount + ' / ' + total;
+            var pct = total > 0 ? (masteredCount / total) * 100 : 0;
+            document.getElementById('progressBar').style.width = pct + '%';
+        }
+
+        // ============================================================
+        //  学习模式
+        // ============================================================
+        function renderStudy() {
+            var container = document.getElementById('content');
+            var html = '<div class="study-grid">';
+            for (var i = 0; i < WORD_LIST.length; i++) {
+                var w = WORD_LIST[i];
+                var isMastered = mastered[w.en] || false;
+                html += '<div class="word-card" style="' + (isMastered ? 'border-left:3px solid #8a9ab8;' : '') + '">';
+                html += '<div class="en">' + w.en + '</div>';
+                html += '<div class="zh">' + w.zh + '</div>';
+                html += '<button class="sound-btn" data-word="' + w.en + '">🔊</button>';
+                if (isMastered) {
+                    html += '<span class="mastered-badge">✓ 已掌握</span>';
+                }
+                html += '</div>';
+            }
+            html += '</div>';
+            container.innerHTML = html;
+
+            container.querySelectorAll('.sound-btn').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    speak(this.dataset.word);
+                });
+            });
+
+            updateProgress();
+        }
+
+        // ============================================================
+        //  连连看模式
+        // ============================================================
+        function renderMatch() {
+            var container = document.getElementById('content');
+
+            var unmastered = getUnmastered();
+            var pool = unmastered.length >= 5 ? unmastered : WORD_LIST;
+            var selected = shuffle(pool.slice()).slice(0, 5);
+            if (selected.length < 5) {
+                selected = shuffle(WORD_LIST.slice()).slice(0, Math.min(5, WORD_LIST.length));
+            }
+
+            matchWords = selected;
+            matchPairs = {};
+            var enList = shuffle(selected.map(function(w) { return w.en; }));
+            var zhList = shuffle(selected.map(function(w) { return w.zh; }));
+
+            selected.forEach(function(w) {
+                matchPairs[w.en] = w.zh;
+            });
+
+            matchCorrectCount = 0;
+            matchSelected = null;
+            matchSelectedItem = null;
+
+            var html = '';
+            html += '<div class="match-container">';
+            html += '<div class="match-result" id="matchResult">配对正确: 0 / ' + selected.length + '</div>';
+            html += '<div class="match-row">';
+            html += '<div class="match-col">';
+            html += '<div class="match-header">🇬🇧 English</div>';
+            for (var i = 0; i < enList.length; i++) {
+                html += '<div class="match-item" data-type="en" data-value="' + enList[i] + '">' + enList[i] + '</div>';
+            }
+            html += '</div>';
+            html += '<div class="match-col">';
+            html += '<div class="match-header">🇨🇳 中文</div>';
+            for (var j = 0; j < zhList.length; j++) {
+                html += '<div class="match-item" data-type="zh" data-value="' + zhList[j] + '">' + zhList[j] + '</div>';
+            }
+            html += '</div>';
+            html += '</div>';
+            html += '</div>';
+
+            container.innerHTML = html;
+
+            container.querySelectorAll('.match-item').forEach(function(el) {
+                el.addEventListener('click', function() {
+                    handleMatchClick(this);
+                });
+            });
+
+            updateProgress();
+        }
+
+        function handleMatchClick(el) {
+            if (el.classList.contains('correct')) return;
+
+            var type = el.dataset.type;
+            var value = el.dataset.value;
+
+            if (matchCorrectCount >= matchWords.length) {
+                return;
+            }
+
+            if (matchSelected === type) {
+                document.querySelectorAll('.match-item.selected').forEach(function(e) {
+                    e.classList.remove('selected');
+                });
+                matchSelected = null;
+                matchSelectedItem = null;
+                el.classList.add('selected');
+                matchSelected = type;
+                matchSelectedItem = el;
+                return;
+            }
+
+            if (matchSelected === null) {
+                el.classList.add('selected');
+                matchSelected = type;
+                matchSelectedItem = el;
+                return;
+            }
+
+            var firstType = matchSelected;
+            var firstValue = matchSelectedItem.dataset.value;
+            var secondType = type;
+            var secondValue = value;
+
+            var enVal, zhVal;
+            if (firstType === 'en') {
+                enVal = firstValue;
+                zhVal = secondValue;
+            } else {
+                enVal = secondValue;
+                zhVal = firstValue;
+            }
+
+            var expectedZh = matchPairs[enVal];
+            if (expectedZh === zhVal) {
+                matchCorrectCount++;
+                document.getElementById('matchResult').textContent = '配对正确: ' + matchCorrectCount + ' / ' + matchWords
+                .length;
+
+                matchSelectedItem.classList.remove('selected');
+                matchSelectedItem.classList.add('correct');
+                el.classList.add('correct');
+
+                var wordObj = null;
+                for (var i = 0; i < WORD_LIST.length; i++) {
+                    if (WORD_LIST[i].en === enVal) {
+                        wordObj = WORD_LIST[i];
+                        break;
+                    }
+                }
+                if (wordObj) {
+                    mastered[enVal] = true;
+                    saveProgress();
+                }
+
+                matchSelected = null;
+                matchSelectedItem = null;
+
+                if (matchCorrectCount >= matchWords.length) {
+                    document.getElementById('matchResult').textContent = '🎉 全部配对完成！';
+                    setTimeout(function() {
+                        renderMatch();
+                    }, 1200);
+                }
+            } else {
+                matchSelectedItem.classList.remove('selected');
+                matchSelectedItem.classList.add('wrong');
+                el.classList.add('wrong');
+
+                setTimeout(function() {
+                    matchSelectedItem.classList.remove('wrong');
+                    el.classList.remove('wrong');
+                }, 400);
+
+                matchSelected = null;
+                matchSelectedItem = null;
+            }
+
+            updateProgress();
+        }
+
+        // ============================================================
+        //  拼写模式（核心修改）
+        // ============================================================
+        function renderSpell() {
+            var container = document.getElementById('content');
+
+            var unmastered = getUnmastered();
+            if (unmastered.length === 0) {
+                container.innerHTML = '<div class="complete-msg">' +
+                    '<span class="icon">🎉</span>' +
+                    '所有单词已掌握！' +
+                    '<div class="sub">太棒了，继续加油 💪</div>' +
+                    '<button class="btn-reset" id="resetAllBtn">🔄 重置进度</button>' +
+                    '</div>';
+                document.getElementById('resetAllBtn').addEventListener('click', resetAll);
+                updateProgress();
+                return;
+            }
+
+            var allUnmastered = unmastered.map(function(w) { return w.en; });
+            var combined = allUnmastered.slice();
+            for (var i = 0; i < spellWrongWords.length; i++) {
+                if (combined.indexOf(spellWrongWords[i]) === -1) {
+                    combined.push(spellWrongWords[i]);
+                }
+            }
+            spellQueue = combined;
+            spellIndex = 0;
+            spellWrongWords = [];
+
+            // 重置状态
+            spellJustWrong = false;
+            spellCurrentEn = '';
+            spellIsShowingAnswer = false;
+
+            renderSpellItem(container);
+            updateProgress();
+        }
+
+        function renderSpellItem(container) {
+            if (spellIndex >= spellQueue.length) {
+                if (spellWrongWords.length > 0) {
+                    spellQueue = spellWrongWords.slice();
+                    spellIndex = 0;
+                    spellWrongWords = [];
+                    spellJustWrong = false;
+                    spellIsShowingAnswer = false;
+                    renderSpellItem(container);
+                    return;
+                } else {
+                    container.innerHTML = '<div class="complete-msg">' +
+                        '<span class="icon">✨</span>' +
+                        '本轮拼写全部正确！' +
+                        '<div class="sub">继续加油 💪</div>' +
+                        '<button class="btn-reset" id="continueBtn">🔄 继续</button>' +
+                        '</div>';
+                    document.getElementById('continueBtn').addEventListener('click', function() {
+                        renderSpell();
+                    });
+                    updateProgress();
+                    return;
+                }
+            }
+
+            var en = spellQueue[spellIndex];
+            spellCurrentEn = en;
+            var wordObj = null;
+            for (var i = 0; i < WORD_LIST.length; i++) {
+                if (WORD_LIST[i].en === en) {
+                    wordObj = WORD_LIST[i];
+                    break;
+                }
+            }
+            if (!wordObj) {
+                spellIndex++;
+                renderSpellItem(container);
+                return;
+            }
+
+            var total = spellQueue.length;
+            var current = spellIndex + 1;
+
+            // 决定提示文字
+            var hintText = '请输入对应的英文';
+            var hintClass = 'answer-hidden';
+            if (spellIsShowingAnswer) {
+                hintText = '❌ 正确答案: ' + en;
+                hintClass = 'answer-shown';
+            }
+
+            var html = '';
+            html += '<div class="spell-area">';
+            html += '<div class="spell-zh">' + wordObj.zh + '</div>';
+            html += '<div class="spell-hint" id="spellHint">';
+            html += '<span class="hint-text ' + hintClass + '" id="hintText">' + hintText + '</span>';
+            html += '</div>';
+            html += '<div class="spell-input-row">';
+            html += '<input type="text" id="spellInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="输入英文...">';
+            html += '<button id="spellSubmitBtn">确认</button>';
+            html += '</div>';
+            html += '<div class="spell-feedback" id="spellFeedback"></div>';
+            html += '<div class="spell-progress">' + current + ' / ' + total + '</div>';
+            html += '</div>';
+
+            container.innerHTML = html;
+
+            var input = document.getElementById('spellInput');
+            var submitBtn = document.getElementById('spellSubmitBtn');
+            var feedback = document.getElementById('spellFeedback');
+            var hintTextEl = document.getElementById('hintText');
+
+            // ---- 核心：用户点击输入框时，清空并隐藏答案 ----
+            input.addEventListener('focus', function() {
+                // 如果当前正在显示答案，清空输入框并隐藏答案
+                if (spellIsShowingAnswer) {
+                    // 清空输入框
+                    this.value = '';
+                    // 移除错误样式
+                    this.classList.remove('wrong-input', 'showing-answer');
+                    // 隐藏答案，显示"再试一次"
+                    if (hintTextEl) {
+                        hintTextEl.textContent = '再试一次 ✍️';
+                        hintTextEl.className = 'hint-text answer-hidden';
+                    }
+                    // 清除反馈信息
+                    feedback.innerHTML = '';
+                    // 更新状态
+                    spellIsShowingAnswer = false;
+                }
+            });
+
+            // ---- 输入时清除错误状态 ----
+            input.addEventListener('input', function() {
+                if (feedback.innerHTML.includes('❌')) {
+                    feedback.innerHTML = '';
+                }
+                this.classList.remove('wrong-input', 'showing-answer');
+            });
+
+            function checkSpell() {
+                var userInput = input.value.trim();
+                if (!userInput) {
+                    feedback.innerHTML = '<span style="color:#b0b0c8;">请输入单词</span>';
+                    return;
+                }
+
+                if (userInput.toLowerCase() === en.toLowerCase()) {
+                    // ---- 正确 ----
+                    feedback.innerHTML = '<span class="correct">✅ 正确！</span>';
+                    mastered[en] = true;
+                    saveProgress();
+                    input.disabled = true;
+                    submitBtn.disabled = true;
+
+                    // 重置错误状态
+                    spellJustWrong = false;
+                    spellIsShowingAnswer = false;
+
+                    setTimeout(function() {
+                        spellIndex++;
+                        renderSpellItem(container);
+                    }, 600);
+                } else {
+                    // ---- 错误 ----
+                    // 显示错误反馈 + 正确答案
+                    feedback.innerHTML = '<span class="wrong">❌ 正确答案: ' + en + '</span>';
+
+                    // 记录错词
+                    if (spellWrongWords.indexOf(en) === -1) {
+                        spellWrongWords.push(en);
+                    }
+
+                    // 标记正在显示答案
+                    spellIsShowingAnswer = true;
+
+                    // 输入框变红
+                    input.classList.add('wrong-input', 'showing-answer');
+
+                    // 更新提示文字：显示答案
+                    if (hintTextEl) {
+                        hintTextEl.textContent = '❌ 正确答案: ' + en;
+                        hintTextEl.className = 'hint-text answer-shown';
+                    }
+
+                    // 不清空输入框，让用户看到自己错在哪
+                    // 但用户点击输入框时会自动清空（由 focus 事件处理）
+                }
+            }
+
+            // 如果之前答错过，自动聚焦
+            setTimeout(function() { input.focus(); }, 100);
+
+            submitBtn.addEventListener('click', checkSpell);
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    checkSpell();
+                }
+            });
+
+            updateProgress();
+        }
+
+        // ============================================================
+        //  重置
+        // ============================================================
+        function resetAll() {
+            if (confirm('确定要重置所有进度吗？')) {
+                WORD_LIST.forEach(function(w) { mastered[w.en] = false; });
+                saveProgress();
+                spellWrongWords = [];
+                spellQueue = [];
+                spellIndex = 0;
+                spellJustWrong = false;
+                spellIsShowingAnswer = false;
+                switchMode(currentMode);
+            }
+        }
+
+        // ============================================================
+        //  模式切换
+        // ============================================================
+        function switchMode(mode) {
+            currentMode = mode;
+
+            document.querySelectorAll('.tab').forEach(function(tab) {
+                tab.classList.toggle('active', tab.dataset.mode === mode);
+            });
+
+            if (mode === 'study') renderStudy();
+            else if (mode === 'match') renderMatch();
+            else if (mode === 'spell') renderSpell();
+        }
+
+        // ============================================================
+        //  语音预加载
+        // ============================================================
+        function preloadSpeech() {
+            if (window.speechSynthesis) {
+                window.speechSynthesis.getVoices();
+                try {
+                    var dummy = new SpeechSynthesisUtterance('');
+                    dummy.lang = 'en-US';
+                    window.speechSynthesis.speak(dummy);
+                    window.speechSynthesis.cancel();
+                } catch (_) {}
+            }
+        }
+
+        // ============================================================
+        //  初始化
+        // ============================================================
+        function init() {
+            loadProgress();
+            preloadSpeech();
+
+            document.querySelectorAll('.tab').forEach(function(tab) {
+                tab.addEventListener('click', function() {
+                    switchMode(this.dataset.mode);
+                });
+            });
+
+            switchMode('study');
+
+            document.addEventListener('click', function() {
+                if (window.speechSynthesis) {
+                    window.speechSynthesis.getVoices();
+                }
+            }, { once: true });
+
+            console.log('📖 单元1 单词学习已启动');
+            console.log('共 ' + getTotalCount() + ' 个单词，已掌握 ' + getMasteredCount() + ' 个');
+            console.log('💡 拼写答错后显示答案，点击输入框自动清空并隐藏答案');
+        }
+
+        init();
+    </script>
+</body>
+</html>
