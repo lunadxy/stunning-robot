@@ -489,6 +489,19 @@
             padding: 0 10px;
             border-radius: 30px;
         }
+        /* 复制按钮 */
+        .food-item .copy-badge {
+            font-size: 12px;
+            background: var(--purple-light);
+            color: var(--purple-dark);
+            padding: 0 10px;
+            border-radius: 30px;
+            border: 1px solid var(--purple);
+            cursor: pointer;
+        }
+        .food-item .copy-badge:active {
+            opacity: 0.7;
+        }
 
         /* ===== 待定池专用 ===== */
         .pending-actions {
@@ -1068,6 +1081,33 @@
             return entries.length > 0 ? entries[0].date : null;
         }
 
+        // 复制食物到另一个孩子
+        function copyFoodToOtherChild(foodId, targetChild) {
+            const source = foods.find(f => f.id === foodId);
+            if (!source) return false;
+            // 检查目标孩子是否已有同名食物（近似去重）
+            const exists = foods.some(f => f.child === targetChild && f.name === source.name);
+            if (exists) {
+                if (!confirm(`「${source.name}」已经存在于${getChildLabel(targetChild)}的列表中，是否仍然复制？`)) {
+                    return false;
+                }
+            }
+            const copy = {
+                id: genId(),
+                name: source.name,
+                child: targetChild,
+                status: 'confirmed',
+                time: source.time,
+                difficulty: source.difficulty,
+                ingredients: [...source.ingredients],
+                createdAt: Date.now(),
+                trial: null
+            };
+            foods.push(copy);
+            saveFoods();
+            return true;
+        }
+
         // ============================================================
         //  渲染引擎
         // ============================================================
@@ -1157,6 +1197,8 @@
 
             const items = getFoodsByChild(currentChild);
             const label = getChildLabel(currentChild);
+            const otherChild = currentChild === 'girl' ? 'boy' : 'girl';
+            const otherLabel = getChildLabel(otherChild);
             title.textContent = `${getChildEmoji(currentChild)} ${label}的列表`;
             count.textContent = items.length + ' 道';
 
@@ -1180,6 +1222,7 @@
                             ${ingStr ? `<span class="ingredients">${ingStr}</span>` : ''}
                             <span style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;width:100%;margin-top:4px;">
                                 <span class="cook-badge" data-id="${f.id}">🍳 做这道菜</span>
+                                <span class="copy-badge" data-id="${f.id}" data-target="${otherChild}">📋 复制到${otherLabel}</span>
                                 <span class="history-badge">${historyStr}</span>
                             </span>
                             <span class="del" data-id="${f.id}">✕</span>
@@ -1203,6 +1246,20 @@
                     const id = this.dataset.id;
                     const food = foods.find(f => f.id === id);
                     if (food) openUsageModal('cook', [food]);
+                });
+            });
+
+            // 复制按钮事件
+            list.querySelectorAll('.copy-badge').forEach(el => {
+                el.addEventListener('click', function() {
+                    const id = this.dataset.id;
+                    const target = this.dataset.target;
+                    const success = copyFoodToOtherChild(id, target);
+                    if (success) {
+                        const targetLabel = getChildLabel(target);
+                        alert(`✅ 已复制到「${targetLabel}」的列表`);
+                        renderAll();
+                    }
                 });
             });
         }
