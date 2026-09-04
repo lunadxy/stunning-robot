@@ -1543,9 +1543,10 @@
         document.getElementById('btnUsageCancel').addEventListener('click', closeUsageModal);
 
         // ============================================================
-        //  搭配逻辑
+        //  搭配逻辑（已加入去重逻辑，两道菜不会重复）
         // ============================================================
         function generateMatch(timeFilter, difficultyFilter) {
+            // 从两个孩子的列表中筛选符合条件的候选菜
             const candidateGirl = foods.filter(f =>
                 (f.child === 'girl' || (f.status === 'pending' && f.trial?.done && !f.child)) &&
                 (timeFilter === 'all' || f.time === timeFilter) &&
@@ -1557,9 +1558,67 @@
                 (difficultyFilter === 'all' || f.difficulty === difficultyFilter)
             );
 
-            if (candidateGirl.length === 0 || candidateBoy.length === 0) return null;
+            if (candidateGirl.length === 0 || candidateBoy.length === 0) {
+                return null;
+            }
+
             const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
-            return { girlDish: pick(candidateGirl), boyDish: pick(candidateBoy) };
+
+            // 先随机选小宝的菜
+            let girlDish = pick(candidateGirl);
+
+            // 尝试为大宝选一道不同的菜（最多尝试 30 次）
+            let boyDish = null;
+            let attempts = 0;
+            const maxAttempts = 30;
+
+            while (attempts < maxAttempts) {
+                const candidate = pick(candidateBoy);
+                // 如果菜名不同就接受
+                if (candidate.name !== girlDish.name) {
+                    boyDish = candidate;
+                    break;
+                }
+                attempts++;
+            }
+
+            // 如果尝试了 30 次还没找到不同的菜
+            if (!boyDish) {
+                // 尝试换小宝的菜，再为大宝选不同的
+                attempts = 0;
+                while (attempts < maxAttempts) {
+                    const newGirl = pick(candidateGirl);
+                    const newBoy = pick(candidateBoy);
+                    if (newGirl.name !== newBoy.name) {
+                        girlDish = newGirl;
+                        boyDish = newBoy;
+                        break;
+                    }
+                    attempts++;
+                }
+            }
+
+            // 如果最后还是找不到不同的组合（理论上极少发生）
+            if (!boyDish || girlDish.name === boyDish.name) {
+                // 降级方案：直接返回随机组合，让用户手动换一批
+                const fallbackGirl = pick(candidateGirl);
+                const fallbackBoy = pick(candidateBoy);
+                // 如果连降级组合都一样，提示用户
+                if (fallbackGirl.name === fallbackBoy.name && candidateGirl.length === 1 && candidateBoy.length === 1) {
+                    alert('💡 两个孩子的列表里都只有「' + fallbackGirl.name + '」这一道菜，建议先给其中一个孩子添加更多选择。');
+                    return { girlDish: fallbackGirl, boyDish: fallbackBoy };
+                }
+                // 如果降级后还一样（极小概率），换小宝的
+                if (fallbackGirl.name === fallbackBoy.name) {
+                    if (candidateGirl.length > 1) {
+                        const newGirl = candidateGirl.find(f => f.name !== fallbackBoy.name) || fallbackGirl;
+                        return { girlDish: newGirl, boyDish: fallbackBoy };
+                    }
+                }
+                return { girlDish: fallbackGirl, boyDish: fallbackBoy };
+            }
+
+            return { girlDish, boyDish };
         }
 
         function saveFavoriteCombo(girlDish, boyDish) {
