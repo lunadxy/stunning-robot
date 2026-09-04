@@ -1,0 +1,1855 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>🍱 家庭膳食管家</title>
+    <style>
+        /* ===== 全局重置 & 主题 ===== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #faf8fc;
+            --card: #ffffff;
+            --border: #ede8f5;
+            --text-dark: #3d3552;
+            --text-muted: #8a84a0;
+            --pink: #f2a6b0;
+            --pink-light: #fdf0f2;
+            --pink-dark: #e0828e;
+            --purple: #b8a6e0;
+            --purple-light: #f2edfa;
+            --purple-dark: #9b84c9;
+            --gray: #b0b0b0;
+            --gray-light: #f5f5f5;
+            --brand: #c9b1e6;
+            --brand-dark: #ae8fd4;
+            --accent: #f5a26d;
+            --accent-light: #fde8d8;
+            --radius: 28px;
+            --radius-sm: 14px;
+            --shadow: 0 8px 24px rgba(60, 50, 80, 0.06);
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: var(--bg);
+            padding: 12px 12px 40px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            color: var(--text-dark);
+        }
+
+        .app {
+            max-width: 480px;
+            width: 100%;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 20px 18px;
+            margin-bottom: 18px;
+            border: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .card-title small {
+            font-weight: 400;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+
+        /* ===== 顶部三标签 ===== */
+        .child-tabs {
+            display: flex;
+            gap: 8px;
+            background: var(--card);
+            border-radius: 60px;
+            padding: 6px;
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .child-tab {
+            flex: 1;
+            padding: 12px 4px;
+            border: none;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 600;
+            background: transparent;
+            color: var(--text-muted);
+            transition: 0.2s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .child-tab .badge {
+            font-size: 11px;
+            background: rgba(0, 0, 0, 0.05);
+            padding: 0 8px;
+            border-radius: 30px;
+            font-weight: 500;
+        }
+
+        .child-tab.active-girl {
+            background: var(--pink-light);
+            color: var(--pink-dark);
+            box-shadow: 0 2px 8px rgba(242, 166, 176, 0.2);
+        }
+        .child-tab.active-girl .badge {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        .child-tab.active-boy {
+            background: var(--purple-light);
+            color: var(--purple-dark);
+            box-shadow: 0 2px 8px rgba(184, 166, 224, 0.2);
+        }
+        .child-tab.active-boy .badge {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        .child-tab.active-pending {
+            background: var(--gray-light);
+            color: var(--text-muted);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        .child-tab.active-pending .badge {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* ===== 表单 ===== */
+        .add-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .form-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .form-row input,
+        .form-row select {
+            flex: 1;
+            min-width: 100px;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 40px;
+            font-size: 15px;
+            background: #fefcfc;
+            outline: none;
+            transition: 0.15s;
+            color: var(--text-dark);
+        }
+        .form-row input:focus,
+        .form-row select:focus {
+            border-color: var(--brand);
+            background: #fff;
+        }
+        .form-row .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 40px;
+            font-size: 15px;
+            font-weight: 600;
+            background: var(--brand);
+            color: white;
+            cursor: pointer;
+            transition: 0.15s;
+            white-space: nowrap;
+        }
+        .form-row .btn:active {
+            transform: scale(0.96);
+            opacity: 0.8;
+        }
+
+        .status-radio {
+            display: flex;
+            gap: 18px;
+            padding: 6px 4px;
+            font-size: 15px;
+        }
+        .status-radio label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .status-radio input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--brand);
+        }
+
+        .ingredient-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 4px 0;
+        }
+        .ingredient-tag {
+            background: var(--bg);
+            padding: 4px 14px 4px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid var(--border);
+        }
+        .ingredient-tag .remove {
+            cursor: pointer;
+            font-weight: 700;
+            color: var(--text-muted);
+            font-size: 16px;
+            line-height: 1;
+        }
+        .ingredient-tag .remove:active {
+            color: #c0392b;
+        }
+
+        .add-ingredient-wrap {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .add-ingredient-wrap input {
+            flex: 1;
+            min-width: 80px;
+            padding: 8px 14px;
+            border: 2px solid var(--border);
+            border-radius: 30px;
+            font-size: 14px;
+            background: #fefcfc;
+            outline: none;
+        }
+        .add-ingredient-wrap .btn-sm {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 30px;
+            background: var(--purple);
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .add-ingredient-wrap .btn-sm:active {
+            transform: scale(0.94);
+        }
+
+        /* ===== 库存看板 ===== */
+        .stock-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+            margin-bottom: 10px;
+        }
+        .stock-item {
+            background: var(--bg);
+            padding: 6px 16px 6px 14px;
+            border-radius: 40px;
+            font-size: 15px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid var(--border);
+        }
+        .stock-item .qty {
+            font-weight: 700;
+            color: var(--brand-dark);
+            min-width: 20px;
+            text-align: center;
+        }
+        .stock-item .unit {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .stock-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+        .stock-actions .btn-outline {
+            padding: 8px 18px;
+            border: 2px solid var(--border);
+            border-radius: 40px;
+            background: transparent;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            color: var(--text-dark);
+        }
+        .stock-actions .btn-outline:active {
+            background: var(--bg);
+        }
+
+        /* ===== 搭配区域 ===== */
+        .match-area {
+            background: linear-gradient(145deg, #faf8fc, #f5f0fa);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            margin-top: 6px;
+        }
+        .match-filters {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+        .match-filters label {
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-muted);
+        }
+        .match-filters select {
+            padding: 6px 12px;
+            border-radius: 30px;
+            border: 2px solid var(--border);
+            background: white;
+            font-size: 14px;
+        }
+
+        .match-result {
+            background: white;
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            border: 1px solid var(--border);
+        }
+        .match-dish {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px dashed var(--border);
+        }
+        .match-dish:last-child {
+            border-bottom: none;
+        }
+        .match-dish .dish-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .match-dish .dish-name {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .match-dish .dish-meta {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .match-dish .child-label {
+            font-size: 14px;
+            font-weight: 600;
+            padding: 2px 12px;
+            border-radius: 30px;
+        }
+        .match-dish .child-label.girl {
+            background: var(--pink-light);
+            color: var(--pink-dark);
+        }
+        .match-dish .child-label.boy {
+            background: var(--purple-light);
+            color: var(--purple-dark);
+        }
+        .match-dish .child-label.pending {
+            background: var(--gray-light);
+            color: var(--text-muted);
+        }
+
+        .match-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+        .match-actions .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            flex: 1;
+            min-width: 100px;
+        }
+        .btn-primary {
+            background: var(--brand);
+            color: white;
+        }
+        .btn-secondary {
+            background: var(--purple);
+            color: white;
+        }
+        .btn-outline-dark {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--text-dark);
+        }
+        .btn:active {
+            transform: scale(0.96);
+            opacity: 0.8;
+        }
+
+        /* ===== 食物列表 ===== */
+        .food-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .food-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+        .food-item .name {
+            font-weight: 600;
+            font-size: 16px;
+            flex: 1;
+            min-width: 80px;
+        }
+        .food-item .meta {
+            font-size: 13px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .food-item .meta .tag {
+            background: white;
+            padding: 0 10px;
+            border-radius: 30px;
+            border: 1px solid var(--border);
+        }
+        .food-item .ingredients {
+            font-size: 13px;
+            color: var(--text-muted);
+            width: 100%;
+            padding-top: 4px;
+            border-top: 1px dashed var(--border);
+            margin-top: 4px;
+        }
+        .food-item .del {
+            color: var(--text-muted);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0 6px;
+            line-height: 1;
+        }
+        .food-item .del:active {
+            color: #c0392b;
+            transform: scale(1.2);
+        }
+        .food-item .cook-badge {
+            font-size: 12px;
+            background: var(--accent-light);
+            color: var(--accent);
+            padding: 0 10px;
+            border-radius: 30px;
+            border: 1px solid #f5d4b8;
+            cursor: pointer;
+        }
+        .food-item .cook-badge:active {
+            opacity: 0.7;
+        }
+        .food-item .history-badge {
+            font-size: 11px;
+            color: var(--text-muted);
+            background: var(--gray-light);
+            padding: 0 10px;
+            border-radius: 30px;
+        }
+
+        /* ===== 待定池专用 ===== */
+        .pending-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+        .pending-actions .btn-sm {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-trial {
+            background: var(--accent);
+            color: white;
+        }
+        .btn-assign-girl {
+            background: var(--pink);
+            color: white;
+        }
+        .btn-assign-boy {
+            background: var(--purple);
+            color: white;
+        }
+        .btn-assign-both {
+            background: var(--brand);
+            color: white;
+        }
+        .btn-assign-reject {
+            background: var(--gray);
+            color: white;
+        }
+        .btn-sm:active {
+            transform: scale(0.94);
+            opacity: 0.8;
+        }
+
+        .rejected-collapse {
+            margin-top: 12px;
+            border-top: 1px solid var(--border);
+            padding-top: 10px;
+        }
+        .rejected-collapse summary {
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .rejected-collapse .food-item {
+            background: #f9f9f9;
+            opacity: 0.7;
+        }
+
+        /* ===== 空状态 ===== */
+        .empty-state {
+            text-align: center;
+            padding: 30px 10px;
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+        .empty-state .big {
+            font-size: 40px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        /* ===== 统计 ===== */
+        .stats-grid {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .stats-grid .stat-card {
+            flex: 1;
+            min-width: 100px;
+            background: var(--bg);
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+        .stats-grid .stat-card .num {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--brand-dark);
+        }
+        .stats-grid .stat-card .label {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .stats-ranking {
+            margin-top: 12px;
+        }
+        .stats-ranking .rank-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+        .stats-ranking .rank-item .name {
+            font-weight: 500;
+        }
+        .stats-ranking .rank-item .qty {
+            color: var(--text-muted);
+        }
+
+        /* ===== 模态框 ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            padding: 20px;
+        }
+        .modal-overlay.hidden {
+            display: none;
+        }
+        .modal {
+            background: white;
+            border-radius: var(--radius);
+            max-width: 420px;
+            width: 100%;
+            padding: 24px 20px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+        .modal h3 {
+            font-size: 20px;
+            margin-bottom: 16px;
+        }
+        .modal .stock-edit-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .modal .stock-edit-item .name {
+            flex: 1;
+            font-weight: 500;
+        }
+        .modal .stock-edit-item .unit {
+            color: var(--text-muted);
+            font-size: 13px;
+            min-width: 40px;
+        }
+        .modal .stock-edit-item input {
+            width: 60px;
+            padding: 6px 8px;
+            border: 2px solid var(--border);
+            border-radius: 30px;
+            text-align: center;
+            font-size: 15px;
+        }
+        .modal .stock-edit-item .btn-sm {
+            padding: 4px 12px;
+            border: none;
+            border-radius: 30px;
+            background: var(--pink-light);
+            color: var(--pink-dark);
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .modal .stock-edit-item .btn-sm:active {
+            transform: scale(0.9);
+        }
+        .modal .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+        }
+        .modal .modal-actions .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .modal .modal-actions .btn-close {
+            background: var(--border);
+            color: var(--text-dark);
+        }
+        .modal .modal-actions .btn-save {
+            background: var(--brand);
+            color: white;
+        }
+
+        /* 用量输入弹窗 */
+        .usage-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .usage-item .name {
+            font-weight: 500;
+            min-width: 60px;
+        }
+        .usage-item .stock-info {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-left: auto;
+            margin-right: 8px;
+        }
+        .usage-item input {
+            width: 80px;
+            padding: 8px 10px;
+            border: 2px solid var(--border);
+            border-radius: 30px;
+            text-align: center;
+            font-size: 16px;
+        }
+        .usage-item input:focus {
+            border-color: var(--brand);
+            outline: none;
+        }
+        .usage-item .unit {
+            color: var(--text-muted);
+            font-size: 14px;
+            min-width: 30px;
+        }
+
+        .usage-total {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 2px solid var(--border);
+            font-weight: 500;
+        }
+
+        /* ===== 底部 ===== */
+        .bottom-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+        .bottom-actions .btn-outline {
+            padding: 8px 16px;
+            border: 2px solid var(--border);
+            border-radius: 40px;
+            background: transparent;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            color: var(--text-dark);
+        }
+        .bottom-actions .btn-outline.danger {
+            border-color: #f5c6cb;
+            color: #b03a3a;
+        }
+        .bottom-actions .btn-outline:active {
+            background: var(--bg);
+        }
+
+        .config-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 20px;
+            border-top: 1px solid var(--border);
+            padding-top: 16px;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 400px) {
+            .form-row {
+                flex-direction: column;
+            }
+            .match-filters {
+                flex-direction: column;
+            }
+            .stock-grid {
+                gap: 4px;
+            }
+            .modal {
+                padding: 16px;
+            }
+            .child-tab {
+                font-size: 14px;
+                padding: 10px 2px;
+            }
+            .pending-actions .btn-sm {
+                font-size: 12px;
+                padding: 4px 10px;
+            }
+            .usage-item {
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            .usage-item .stock-info {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app" id="app">
+
+        <!-- ===== 顶部三标签 ===== -->
+        <div class="child-tabs" id="childTabs">
+            <button class="child-tab active-girl" data-child="girl" id="tabGirl">🌸 <span id="girlName">小宝</span> <span class="badge" id="girlCount">0</span></button>
+            <button class="child-tab" data-child="boy" id="tabBoy">💜 <span id="boyName">大宝</span> <span class="badge" id="boyCount">0</span></button>
+            <button class="child-tab" data-child="pending" id="tabPending">📋 <span>待定</span> <span class="badge" id="pendingCount">0</span></button>
+        </div>
+
+        <!-- ===== 库存看板 ===== -->
+        <div class="card" id="stockCard">
+            <div class="card-title">
+                📦 冰箱库存
+                <small>制作时扣减</small>
+            </div>
+            <div class="stock-grid" id="stockGrid"></div>
+            <div class="stock-actions">
+                <button class="btn-outline" id="btnStockEdit">✏️ 补货/编辑</button>
+                <button class="btn-outline" id="btnStockReset">🔄 重置库存</button>
+            </div>
+        </div>
+
+        <!-- ===== 添加食物 ===== -->
+        <div class="card">
+            <div class="card-title">
+                📝 记录食物
+                <small id="addToLabel">→ 小宝</small>
+            </div>
+            <div class="add-form">
+                <div class="form-row">
+                    <input type="text" id="foodName" placeholder="食物名称（如番茄炒蛋）" />
+                </div>
+                <div class="form-row">
+                    <select id="foodTime"><option value="快速">⏱ 快速</option><option value="正常" selected>⏱ 正常</option><option value="慢炖">⏱ 慢炖</option></select>
+                    <select id="foodDifficulty"><option value="简单" selected>😊 简单</option><option value="中等">🤔 中等</option><option value="较难">😅 较难</option></select>
+                </div>
+                <div class="form-row">
+                    <div style="flex:1;min-width:160px;">
+                        <div class="add-ingredient-wrap">
+                            <input type="text" id="ingredientInput" placeholder="食材名称（如鸡蛋）" />
+                            <button class="btn-sm" id="btnAddIngredient">➕ 添加</button>
+                        </div>
+                        <div class="ingredient-tags" id="ingredientTags"></div>
+                    </div>
+                </div>
+                <div class="status-radio">
+                    <label><input type="radio" name="foodStatus" value="confirmed" checked /> ✅ 确定爱吃</label>
+                    <label><input type="radio" name="foodStatus" value="pending" /> 🧪 待定试吃</label>
+                </div>
+                <div class="form-row">
+                    <button class="btn" id="btnSaveFood">✅ 记录食物</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 搭配助手 ===== -->
+        <div class="card">
+            <div class="card-title">
+                🍽️ 搭配一顿饭 <small>各选一道</small>
+            </div>
+            <div class="match-area">
+                <div class="match-filters">
+                    <label>⏱ 时间 <select id="matchTime"><option value="all">全部</option><option value="快速">快速</option><option value="正常">正常</option><option value="慢炖">慢炖</option></select></label>
+                    <label>😊 难度 <select id="matchDifficulty"><option value="all">全部</option><option value="简单">简单</option><option value="中等">中等</option><option value="较难">较难</option></select></label>
+                </div>
+                <div class="match-result" id="matchResult">
+                    <div style="text-align:center;color:var(--text-muted);padding:12px 0;">点击「开始搭配」生成组合</div>
+                </div>
+                <div class="match-actions">
+                    <button class="btn btn-primary" id="btnMatch">🎲 开始搭配</button>
+                    <button class="btn btn-outline-dark" id="btnMatchRefresh">🔄 换一批</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 食物列表 (当前视图) ===== -->
+        <div class="card">
+            <div class="card-title">
+                <span id="listTitle">🍱 小宝的列表</span>
+                <small id="listCount">0 道</small>
+            </div>
+            <div class="food-list" id="foodList"></div>
+            <div class="bottom-actions" style="margin-top:12px;">
+                <button class="btn-outline danger" id="btnClearCurrent">🗑️ 清空当前</button>
+                <button class="btn-outline" id="btnClearAll">⚠️ 清空全部</button>
+            </div>
+            <div id="rejectedArea" style="display:none;"></div>
+        </div>
+
+        <!-- ===== 消耗统计 ===== -->
+        <div class="card">
+            <div class="card-title">
+                📊 食材消耗统计
+                <small id="statsPeriodLabel">过去7天</small>
+            </div>
+            <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+                <button class="btn-outline active" data-period="7" style="flex:1;">📅 7天</button>
+                <button class="btn-outline" data-period="30" style="flex:1;">📅 30天</button>
+            </div>
+            <div id="statsContent">
+                <div class="stats-grid" id="statsSummary"></div>
+                <div class="stats-ranking" id="statsRanking"></div>
+            </div>
+        </div>
+
+        <div class="config-hint">
+            🌸 小宝 · 💜 大宝 · 📋 待定 &nbsp;|&nbsp; 数据自动保存在本地
+        </div>
+    </div>
+
+    <!-- ===== 模态框：库存编辑 ===== -->
+    <div class="modal-overlay hidden" id="stockModal">
+        <div class="modal">
+            <h3>✏️ 补货 / 编辑库存</h3>
+            <div id="stockEditList"></div>
+            <div style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap;">
+                <input type="text" id="newStockName" placeholder="新食材名" style="flex:1;min-width:100px;padding:8px 14px;border:2px solid var(--border);border-radius:30px;font-size:14px;" />
+                <input type="text" id="newStockUnit" placeholder="单位" style="width:60px;padding:8px 6px;border:2px solid var(--border);border-radius:30px;font-size:14px;text-align:center;" />
+                <button class="btn-sm" id="btnAddStockItem" style="background:var(--purple);color:white;padding:8px 14px;">➕</button>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-close" id="btnStockModalClose">关闭</button>
+                <button class="btn btn-save" id="btnStockModalSave">💾 保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 模态框：用量输入（制作时弹出） ===== -->
+    <div class="modal-overlay hidden" id="usageModal">
+        <div class="modal">
+            <h3 id="usageModalTitle">🍳 制作：番茄炒蛋</h3>
+            <div id="usageList"></div>
+            <div class="usage-total" id="usageTotal"></div>
+            <div class="modal-actions">
+                <button class="btn btn-close" id="btnUsageCancel">取消</button>
+                <button class="btn btn-save" id="btnUsageConfirm">✅ 确认制作并扣减库存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        //  配置区
+        // ============================================================
+        const CONFIG = {
+            girlName: '小宝',
+            boyName: '大宝',
+            girlEmoji: '🌸',
+            boyEmoji: '💜',
+        };
+
+        // ============================================================
+        //  数据层
+        // ============================================================
+        const STORAGE_KEY_FOODS = 'family_foods_v3';
+        const STORAGE_KEY_STOCK = 'family_stock_v3';
+        const STORAGE_KEY_HISTORY = 'family_cook_history_v3';
+
+        const DEFAULT_STOCK = {
+            '鸡蛋': { qty: 12, unit: '个' },
+            '番茄': { qty: 4, unit: '个' },
+            '肉末': { qty: 500, unit: '克' },
+            '青菜': { qty: 3, unit: '把' },
+            '牛奶': { qty: 2, unit: '盒' },
+            '米饭': { qty: 5, unit: '碗' },
+            '芝士': { qty: 3, unit: '片' },
+            '火腿': { qty: 2, unit: '根' },
+            '胡萝卜': { qty: 3, unit: '根' },
+            '肉': { qty: 500, unit: '克' },
+        };
+
+        let foods = [];
+        let stock = {};
+        let cookHistory = []; // 每次制作的记录
+        let currentChild = 'girl';
+        let currentMatchResult = null;
+
+        // 用量弹窗的上下文
+        let usageContext = null; // { type: 'trial'|'cook'|'match', foodIds: [], foods: [], onConfirm: function }
+
+        // ============================================================
+        //  存储函数
+        // ============================================================
+        function loadData() {
+            try {
+                const f = localStorage.getItem(STORAGE_KEY_FOODS);
+                foods = f ? JSON.parse(f) : [];
+                const s = localStorage.getItem(STORAGE_KEY_STOCK);
+                stock = s ? JSON.parse(s) : JSON.parse(JSON.stringify(DEFAULT_STOCK));
+                const h = localStorage.getItem(STORAGE_KEY_HISTORY);
+                cookHistory = h ? JSON.parse(h) : [];
+            } catch (e) {
+                foods = [];
+                stock = JSON.parse(JSON.stringify(DEFAULT_STOCK));
+                cookHistory = [];
+            }
+            for (const key in stock) {
+                if (typeof stock[key] === 'number') {
+                    stock[key] = { qty: stock[key], unit: '个' };
+                } else if (!stock[key].unit) {
+                    stock[key].unit = '个';
+                }
+            }
+        }
+
+        function saveFoods() { localStorage.setItem(STORAGE_KEY_FOODS, JSON.stringify(foods)); }
+
+        function saveStock() { localStorage.setItem(STORAGE_KEY_STOCK, JSON.stringify(stock)); }
+
+        function saveHistory() { localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(cookHistory)); }
+
+        // ============================================================
+        //  工具函数
+        // ============================================================
+        function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+        function getChildLabel(child) {
+            if (child === 'girl') return CONFIG.girlName;
+            if (child === 'boy') return CONFIG.boyName;
+            return '待定';
+        }
+
+        function getChildEmoji(child) {
+            if (child === 'girl') return CONFIG.girlEmoji;
+            if (child === 'boy') return CONFIG.boyEmoji;
+            return '📋';
+        }
+
+        function getFoodsByChild(child) {
+            return foods.filter(f => f.child === child);
+        }
+
+        function getFoodsByStatus(status) {
+            return foods.filter(f => f.status === status);
+        }
+
+        function getStockQty(name) { return stock[name] ? stock[name].qty : 0; }
+
+        function getStockUnit(name) { return stock[name] ? stock[name].unit : '个'; }
+
+        function hasEnoughStock(consumed) {
+            for (const [name, qty] of Object.entries(consumed)) {
+                if (getStockQty(name) < qty) return false;
+            }
+            return true;
+        }
+
+        function consumeStock(consumed) {
+            for (const [name, qty] of Object.entries(consumed)) {
+                if (!stock[name]) return false;
+                if (stock[name].qty < qty) return false;
+                stock[name].qty -= qty;
+                if (stock[name].qty < 0) stock[name].qty = 0;
+            }
+            saveStock();
+            return true;
+        }
+
+        function getCookCount(foodId) {
+            return cookHistory.filter(h => h.foodId === foodId).length;
+        }
+
+        function getLastCookDate(foodId) {
+            const entries = cookHistory.filter(h => h.foodId === foodId).sort((a, b) => b.date - a.date);
+            return entries.length > 0 ? entries[0].date : null;
+        }
+
+        // ============================================================
+        //  渲染引擎
+        // ============================================================
+        function renderAll() {
+            renderTabs();
+            renderStock();
+            renderList();
+            renderMatchResult();
+            renderStats(document.querySelector('[data-period].active')?.dataset?.period || '7');
+            updateAddLabel();
+        }
+
+        function renderTabs() {
+            const girlCount = getFoodsByChild('girl').length;
+            const boyCount = getFoodsByChild('boy').length;
+            const pendingCount = getFoodsByStatus('pending').filter(f => !f.trial?.done).length;
+
+            document.getElementById('girlCount').textContent = girlCount;
+            document.getElementById('boyCount').textContent = boyCount;
+            document.getElementById('pendingCount').textContent = pendingCount;
+            document.getElementById('girlName').textContent = CONFIG.girlName;
+            document.getElementById('boyName').textContent = CONFIG.boyName;
+
+            const tabGirl = document.getElementById('tabGirl');
+            const tabBoy = document.getElementById('tabBoy');
+            const tabPending = document.getElementById('tabPending');
+
+            [tabGirl, tabBoy, tabPending].forEach(t => {
+                t.classList.remove('active-girl', 'active-boy', 'active-pending');
+            });
+
+            if (currentChild === 'girl') tabGirl.classList.add('active-girl');
+            else if (currentChild === 'boy') tabBoy.classList.add('active-boy');
+            else tabPending.classList.add('active-pending');
+        }
+
+        function renderStock() {
+            const grid = document.getElementById('stockGrid');
+            const keys = Object.keys(stock);
+            if (keys.length === 0) {
+                grid.innerHTML = '<span style="color:var(--text-muted);font-size:14px;">暂无食材，请补货</span>';
+                return;
+            }
+            grid.innerHTML = keys.map(key => {
+                const item = stock[key];
+                return `<span class="stock-item">${key} <span class="qty">${item.qty}</span> <span class="unit">${item.unit}</span></span>`;
+            }).join('');
+        }
+
+        function renderList() {
+            const list = document.getElementById('foodList');
+            const title = document.getElementById('listTitle');
+            const count = document.getElementById('listCount');
+            const rejectedArea = document.getElementById('rejectedArea');
+
+            if (currentChild === 'pending') {
+                const pendingItems = foods.filter(f => f.status === 'pending' && !f.trial?.done);
+                const triedItems = foods.filter(f => f.status === 'pending' && f.trial?.done && f.child === null);
+                const rejectedItems = foods.filter(f => f.status === 'rejected');
+
+                title.textContent = '📋 待定试吃';
+                count.textContent = pendingItems.length + ' 道待试吃';
+
+                if (pendingItems.length === 0 && triedItems.length === 0) {
+                    list.innerHTML =
+                    `<div class="empty-state"><span class="big">🧪</span>暂无待定食物<br>试试记录新食谱时选「待定试吃」</div>`;
+                } else {
+                    let html = '';
+                    pendingItems.forEach(f => { html += renderPendingItem(f, false); });
+                    triedItems.forEach(f => { html += renderPendingItem(f, true); });
+                    list.innerHTML = html;
+                }
+
+                if (rejectedItems.length > 0) {
+                    rejectedArea.style.display = 'block';
+                    rejectedArea.innerHTML = `
+                                <details class="rejected-collapse">
+                                    <summary>📁 已试吃·不推荐 (${rejectedItems.length}道)</summary>
+                                    ${rejectedItems.map(f => renderRejectedItem(f)).join('')}
+                                </details>
+                            `;
+                } else {
+                    rejectedArea.style.display = 'none';
+                }
+                return;
+            }
+
+            const items = getFoodsByChild(currentChild);
+            const label = getChildLabel(currentChild);
+            title.textContent = `${getChildEmoji(currentChild)} ${label}的列表`;
+            count.textContent = items.length + ' 道';
+
+            if (items.length === 0) {
+                list.innerHTML = `<div class="empty-state"><span class="big">🍽️</span>还没有记录<br>快添加 ${label} 爱吃的食物吧</div>`;
+                return;
+            }
+
+            const sorted = [...items].sort((a, b) => b.createdAt - a.createdAt);
+            list.innerHTML = sorted.map(f => {
+                const meta = `⏱${f.time} · 😊${f.difficulty}`;
+                const ingStr = f.ingredients?.length ? `🧄 ${f.ingredients.join('、')}` : '';
+                const cookCount = getCookCount(f.id);
+                const lastDate = getLastCookDate(f.id);
+                const historyStr = lastDate ? `制作${cookCount}次 · 最近${new Date(lastDate).toLocaleDateString('zh-CN')}` :
+                    `制作${cookCount}次`;
+
+                return `<div class="food-item">
+                            <span class="name">${f.name}</span>
+                            <span class="meta"><span class="tag">${meta}</span></span>
+                            ${ingStr ? `<span class="ingredients">${ingStr}</span>` : ''}
+                            <span style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;width:100%;margin-top:4px;">
+                                <span class="cook-badge" data-id="${f.id}">🍳 做这道菜</span>
+                                <span class="history-badge">${historyStr}</span>
+                            </span>
+                            <span class="del" data-id="${f.id}">✕</span>
+                        </div>`;
+            }).join('');
+
+            list.querySelectorAll('.del').forEach(el => {
+                el.addEventListener('click', function() {
+                    const id = this.dataset.id;
+                    const f = foods.find(x => x.id === id);
+                    if (f && confirm(`确定删除「${f.name}」吗？`)) {
+                        foods = foods.filter(x => x.id !== id);
+                        saveFoods();
+                        renderAll();
+                    }
+                });
+            });
+
+            list.querySelectorAll('.cook-badge').forEach(el => {
+                el.addEventListener('click', function() {
+                    const id = this.dataset.id;
+                    const food = foods.find(f => f.id === id);
+                    if (food) openUsageModal('cook', [food]);
+                });
+            });
+        }
+
+        function renderPendingItem(f, tried) {
+            const ingStr = f.ingredients?.length ? `🧄 ${f.ingredients.join('、')}` : '';
+            const meta = `⏱${f.time} · 😊${f.difficulty}`;
+
+            let actions = '';
+            if (tried) {
+                const trialDate = f.trial?.date ? new Date(f.trial.date).toLocaleDateString('zh-CN') : '未知';
+                actions = `
+                            <div style="font-size:12px;color:var(--text-muted);margin:4px 0;">✅ 已试吃 ${trialDate}</div>
+                            <div class="pending-actions">
+                                <button class="btn-sm btn-assign-girl" data-id="${f.id}" data-target="girl">🌸 小宝爱吃</button>
+                                <button class="btn-sm btn-assign-boy" data-id="${f.id}" data-target="boy">💜 大宝爱吃</button>
+                                <button class="btn-sm btn-assign-both" data-id="${f.id}" data-target="both">❤️ 都爱吃</button>
+                                <button class="btn-sm btn-assign-reject" data-id="${f.id}" data-target="reject">❌ 都不爱吃</button>
+                            </div>
+                        `;
+            } else {
+                actions = `
+                            <div class="pending-actions">
+                                <button class="btn-sm btn-trial" data-id="${f.id}">🍳 做一次试试</button>
+                            </div>
+                        `;
+            }
+
+            return `<div class="food-item" style="border-left:4px solid var(--gray);">
+                        <span class="name">${f.name}</span>
+                        <span class="meta"><span class="tag">${meta}</span></span>
+                        ${ingStr ? `<span class="ingredients">${ingStr}</span>` : ''}
+                        ${actions}
+                    </div>`;
+        }
+
+        function renderRejectedItem(f) {
+            const ingStr = f.ingredients?.length ? `🧄 ${f.ingredients.join('、')}` : '';
+            const meta = `⏱${f.time} · 😊${f.difficulty}`;
+            const trialDate = f.trial?.date ? new Date(f.trial.date).toLocaleDateString('zh-CN') : '未知';
+            return `<div class="food-item" style="border-left:4px solid var(--gray);opacity:0.7;">
+                        <span class="name">${f.name}</span>
+                        <span class="meta"><span class="tag">${meta}</span></span>
+                        ${ingStr ? `<span class="ingredients">${ingStr}</span>` : ''}
+                        <span class="trial-badge">试吃 ${trialDate}</span>
+                        <span class="del" data-id="${f.id}">✕</span>
+                    </div>`;
+        }
+
+        function renderMatchResult() {
+            const container = document.getElementById('matchResult');
+            if (!currentMatchResult) {
+                container.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:12px 0;">点击「开始搭配」生成组合</div>`;
+                return;
+            }
+            const { girlDish, boyDish } = currentMatchResult;
+            if (!girlDish || !boyDish) {
+                container.innerHTML =
+                `<div style="text-align:center;color:#b03a3a;padding:12px 0;">❌ 搭配失败，请调整筛选条件或添加更多食物</div>`;
+                return;
+            }
+
+            const girlIng = girlDish.ingredients?.join('、') || '';
+            const boyIng = boyDish.ingredients?.join('、') || '';
+            const common = [];
+            if (girlDish.ingredients && boyDish.ingredients) {
+                for (const g of girlDish.ingredients) {
+                    if (boyDish.ingredients.includes(g)) common.push(g);
+                }
+            }
+            const commonHtml = common.length ?
+                `<div style="margin-top:10px;background:#f0edf8;padding:8px 14px;border-radius:30px;font-size:14px;color:#7c6df0;">💡 共用食材：${common.join('、')} → 一起备菜</div>` :
+                '';
+            const allIng = new Set();
+            if (girlDish.ingredients) girlDish.ingredients.forEach(i => allIng.add(i));
+            if (boyDish.ingredients) boyDish.ingredients.forEach(i => allIng.add(i));
+
+            container.innerHTML = `
+                        <div class="match-dish">
+                            <div class="dish-info">
+                                <span class="dish-name">${girlDish.name}</span>
+                                <span class="dish-meta">⏱${girlDish.time} · 😊${girlDish.difficulty} ${girlIng ? '· 🧄'+girlIng : ''}</span>
+                            </div>
+                            <span class="child-label girl">🌸 ${CONFIG.girlName}</span>
+                        </div>
+                        <div class="match-dish">
+                            <div class="dish-info">
+                                <span class="dish-name">${boyDish.name}</span>
+                                <span class="dish-meta">⏱${boyDish.time} · 😊${boyDish.difficulty} ${boyIng ? '· 🧄'+boyIng : ''}</span>
+                            </div>
+                            <span class="child-label boy">💜 ${CONFIG.boyName}</span>
+                        </div>
+                        <div style="margin-top:10px;font-size:14px;color:var(--text-muted);border-top:1px solid var(--border);padding-top:10px;">
+                            📦 需要食材：${allIng.size ? Array.from(allIng).join('、') : '（无食材信息）'}
+                        </div>
+                        ${commonHtml}
+                        <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+                            <button class="btn-sm" id="btnUseMatch" style="background:var(--brand);color:white;padding:10px 20px;border:none;border-radius:30px;font-weight:600;font-size:15px;">✅ 就用这组</button>
+                            <button class="btn-sm" id="btnSaveMatchFavorite" style="background:var(--purple);color:white;padding:10px 20px;border:none;border-radius:30px;font-weight:600;font-size:15px;">❤️ 保存组合</button>
+                        </div>
+                    `;
+
+            document.getElementById('btnUseMatch')?.addEventListener('click', function() {
+                // 打开用量弹窗，合并两道菜的食材
+                const allFoods = [girlDish, boyDish];
+                openUsageModal('match', allFoods);
+            });
+
+            document.getElementById('btnSaveMatchFavorite')?.addEventListener('click', function() {
+                saveFavoriteCombo(girlDish, boyDish);
+            });
+        }
+
+        function renderStats(days) {
+            if (!days) days = '7';
+            const period = parseInt(days);
+            const cutoff = Date.now() - period * 24 * 60 * 60 * 1000;
+            const recentHistory = cookHistory.filter(h => h.date >= cutoff);
+
+            const consumption = {};
+            for (const h of recentHistory) {
+                if (h.consumed) {
+                    for (const [name, qty] of Object.entries(h.consumed)) {
+                        consumption[name] = (consumption[name] || 0) + qty;
+                    }
+                }
+            }
+
+            const totalDishes = recentHistory.length;
+            const totalConsume = Object.values(consumption).reduce((a, b) => a + b, 0);
+
+            document.getElementById('statsPeriodLabel').textContent = `过去${days}天`;
+
+            document.getElementById('statsSummary').innerHTML = `
+                        <div class="stat-card"><div class="num">${totalDishes}</div><div class="label">🍽️ 制作次数</div></div>
+                        <div class="stat-card"><div class="num">${totalConsume}</div><div class="label">🧄 食材消耗</div></div>
+                        <div class="stat-card"><div class="num">${Object.keys(consumption).length}</div><div class="label">📦 食材种类</div></div>
+                    `;
+
+            const sorted = Object.entries(consumption).sort((a, b) => b[1] - a[1]);
+            const ranking = document.getElementById('statsRanking');
+            if (sorted.length === 0) {
+                ranking.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:12px 0;">暂无消耗数据</div>';
+                return;
+            }
+            ranking.innerHTML = sorted.slice(0, 10).map(([name, qty], idx) =>
+                `<div class="rank-item"><span class="name">${idx+1}. ${name}</span><span class="qty">消耗 ${qty} ${getStockUnit(name)}</span></div>`
+            ).join('');
+        }
+
+        function updateAddLabel() {
+            document.getElementById('addToLabel').textContent = `→ ${getChildLabel(currentChild)}`;
+        }
+
+        // ============================================================
+        //  用量弹窗
+        // ============================================================
+        function openUsageModal(type, foodList) {
+            // 合并所有食材
+            const ingredientMap = {};
+            for (const f of foodList) {
+                if (f.ingredients) {
+                    for (const ing of f.ingredients) {
+                        if (!ingredientMap[ing]) {
+                            ingredientMap[ing] = {
+                                unit: getStockUnit(ing),
+                                stock: getStockQty(ing),
+                            };
+                        }
+                    }
+                }
+            }
+
+            const names = foodList.map(f => f.name).join('、');
+            document.getElementById('usageModalTitle').textContent = `🍳 制作：${names}`;
+
+            const list = document.getElementById('usageList');
+            list.innerHTML = Object.entries(ingredientMap).map(([name, info]) => `
+                        <div class="usage-item">
+                            <span class="name">${name}</span>
+                            <input type="number" step="0.1" min="0.01" class="usage-qty" data-ing="${name}" placeholder="用量" />
+                            <span class="unit">${info.unit}</span>
+                            <span class="stock-info">库存: ${info.stock} ${info.unit}</span>
+                        </div>
+                    `).join('');
+
+            // 计算总量（动态）
+            const updateTotal = () => {
+                const inputs = list.querySelectorAll('.usage-qty');
+                let total = 0;
+                let hasAll = true;
+                inputs.forEach(inp => {
+                    const val = parseFloat(inp.value);
+                    if (isNaN(val) || val <= 0) hasAll = false;
+                    else total += val;
+                });
+                document.getElementById('usageTotal').textContent = hasAll ? `📦 总计消耗 ${total} 份食材` :
+                    '请填写所有食材的用量';
+            };
+
+            list.querySelectorAll('.usage-qty').forEach(inp => {
+                inp.addEventListener('input', updateTotal);
+            });
+            updateTotal();
+
+            // 保存上下文
+            usageContext = {
+                type: type,
+                foods: foodList,
+                onConfirm: function(consumed) {
+                    // 检查库存
+                    for (const [name, qty] of Object.entries(consumed)) {
+                        if (getStockQty(name) < qty) {
+                            alert(`❌ ${name} 库存不足（需要 ${qty} ${getStockUnit(name)}，只剩 ${getStockQty(name)} ${getStockUnit(name)}），请先补货！`);
+                            return false;
+                        }
+                    }
+
+                    // 扣减库存
+                    for (const [name, qty] of Object.entries(consumed)) {
+                        stock[name].qty -= qty;
+                        if (stock[name].qty < 0) stock[name].qty = 0;
+                    }
+                    saveStock();
+
+                    // 记录制作历史
+                    const now = Date.now();
+                    for (const f of foodList) {
+                        cookHistory.push({
+                            id: genId(),
+                            foodId: f.id,
+                            foodName: f.name,
+                            type: type,
+                            date: now,
+                            consumed: { ...consumed }
+                        });
+                    }
+                    saveHistory();
+
+                    // 如果是待定试吃，标记 trial.done = true
+                    if (type === 'trial') {
+                        for (const f of foodList) {
+                            if (f.status === 'pending') {
+                                f.trial = { done: true, date: now };
+                            }
+                        }
+                        saveFoods();
+                    }
+
+                    // 如果是匹配（正餐），记录到对应孩子（如果还没有归属）
+                    if (type === 'match') {
+                        for (const f of foodList) {
+                            if (f.status === 'pending' && f.child === null) {
+                                // 保留在待定，但已试吃，等待分配
+                            }
+                        }
+                    }
+
+                    // 如果是 "做这道菜" (cook)，记录即可
+
+                    alert(`✅ 制作完成！已扣减库存。`);
+                    closeUsageModal();
+                    renderAll();
+                    return true;
+                }
+            };
+
+            document.getElementById('usageModal').classList.remove('hidden');
+        }
+
+        function closeUsageModal() {
+            document.getElementById('usageModal').classList.add('hidden');
+            usageContext = null;
+        }
+
+        // 确认制作
+        document.getElementById('btnUsageConfirm').addEventListener('click', function() {
+            if (!usageContext) return;
+            const inputs = document.querySelectorAll('.usage-qty');
+            const consumed = {};
+            let valid = true;
+            inputs.forEach(inp => {
+                const val = parseFloat(inp.value);
+                if (isNaN(val) || val <= 0) {
+                    valid = false;
+                } else {
+                    consumed[inp.dataset.ing] = val;
+                }
+            });
+
+            if (!valid) {
+                alert('请填写所有食材的用量（必须大于0）');
+                return;
+            }
+
+            if (usageContext.onConfirm) {
+                usageContext.onConfirm(consumed);
+            }
+        });
+
+        document.getElementById('btnUsageCancel').addEventListener('click', closeUsageModal);
+
+        // ============================================================
+        //  搭配逻辑
+        // ============================================================
+        function generateMatch(timeFilter, difficultyFilter) {
+            const candidateGirl = foods.filter(f =>
+                (f.child === 'girl' || (f.status === 'pending' && f.trial?.done && !f.child)) &&
+                (timeFilter === 'all' || f.time === timeFilter) &&
+                (difficultyFilter === 'all' || f.difficulty === difficultyFilter)
+            );
+            const candidateBoy = foods.filter(f =>
+                (f.child === 'boy' || (f.status === 'pending' && f.trial?.done && !f.child)) &&
+                (timeFilter === 'all' || f.time === timeFilter) &&
+                (difficultyFilter === 'all' || f.difficulty === difficultyFilter)
+            );
+
+            if (candidateGirl.length === 0 || candidateBoy.length === 0) return null;
+            const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+            return { girlDish: pick(candidateGirl), boyDish: pick(candidateBoy) };
+        }
+
+        function saveFavoriteCombo(girlDish, boyDish) {
+            const key = 'favorite_combos_v3';
+            let combos = [];
+            try { const raw = localStorage.getItem(key); if (raw) combos = JSON.parse(raw); } catch (e) {}
+            combos.unshift({
+                id: genId(),
+                girlName: girlDish.name,
+                boyName: boyDish.name,
+                girlTime: girlDish.time,
+                boyTime: boyDish.time,
+                girlDiff: girlDish.difficulty,
+                boyDiff: boyDish.difficulty,
+                girlIng: girlDish.ingredients || [],
+                boyIng: boyDish.ingredients || [],
+                createdAt: Date.now()
+            });
+            if (combos.length > 20) combos = combos.slice(0, 20);
+            localStorage.setItem(key, JSON.stringify(combos));
+            alert('❤️ 已保存为常用组合！');
+        }
+
+        // ============================================================
+        //  事件绑定
+        // ============================================================
+
+        // 切换标签
+        document.getElementById('tabGirl').addEventListener('click', function() { currentChild = 'girl';
+            currentMatchResult = null;
+            renderAll(); });
+        document.getElementById('tabBoy').addEventListener('click', function() { currentChild = 'boy';
+            currentMatchResult = null;
+            renderAll(); });
+        document.getElementById('tabPending').addEventListener('click', function() { currentChild = 'pending';
+            currentMatchResult = null;
+            renderAll(); });
+
+        // 食材标签
+        const ingredientTags = document.getElementById('ingredientTags');
+        const ingredientInput = document.getElementById('ingredientInput');
+        let tempIngredients = [];
+
+        document.getElementById('btnAddIngredient').addEventListener('click', function() {
+            const val = ingredientInput.value.trim();
+            if (!val) return;
+            if (!tempIngredients.includes(val)) {
+                tempIngredients.push(val);
+                renderIngredientTags();
+            }
+            ingredientInput.value = '';
+            ingredientInput.focus();
+        });
+        ingredientInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { e.preventDefault();
+                document.getElementById('btnAddIngredient').click(); }
+        });
+
+        function renderIngredientTags() {
+            ingredientTags.innerHTML = tempIngredients.map(ing =>
+                `<span class="ingredient-tag">${ing} <span class="remove" data-ing="${ing}">✕</span></span>`
+            ).join('');
+            ingredientTags.querySelectorAll('.remove').forEach(el => {
+                el.addEventListener('click', function() {
+                    tempIngredients = tempIngredients.filter(i => i !== this.dataset.ing);
+                    renderIngredientTags();
+                });
+            });
+        }
+
+        // 保存食物（只记录，不扣库存）
+        document.getElementById('btnSaveFood').addEventListener('click', function() {
+            const name = document.getElementById('foodName').value.trim();
+            if (!name) { alert('请输入食物名称'); return; }
+            if (tempIngredients.length === 0) { alert('请至少添加一种食材'); return; }
+
+            const time = document.getElementById('foodTime').value;
+            const difficulty = document.getElementById('foodDifficulty').value;
+            const status = document.querySelector('input[name="foodStatus"]:checked').value;
+
+            const newFood = {
+                id: genId(),
+                name: name,
+                child: status === 'pending' ? null : currentChild,
+                status: status,
+                time: time,
+                difficulty: difficulty,
+                ingredients: [...tempIngredients],
+                createdAt: Date.now(),
+                trial: status === 'pending' ? { done: false } : null
+            };
+            foods.push(newFood);
+            saveFoods();
+
+            document.getElementById('foodName').value = '';
+            tempIngredients = [];
+            renderIngredientTags();
+            renderAll();
+            document.getElementById('foodName').focus();
+        });
+
+        // 待定操作：试吃 / 分配
+        document.getElementById('foodList').addEventListener('click', function(e) {
+            const target = e.target.closest('button');
+            if (!target) return;
+
+            const id = target.dataset.id;
+            const food = foods.find(f => f.id === id);
+            if (!food) return;
+
+            // 做一次试试 → 打开用量弹窗
+            if (target.classList.contains('btn-trial')) {
+                openUsageModal('trial', [food]);
+                return;
+            }
+
+            // 分配归属
+            if (target.classList.contains('btn-assign-girl') ||
+                target.classList.contains('btn-assign-boy') ||
+                target.classList.contains('btn-assign-both') ||
+                target.classList.contains('btn-assign-reject')) {
+
+                const targetChild = target.dataset.target;
+                if (targetChild === 'girl') {
+                    food.child = 'girl';
+                    food.status = 'confirmed';
+                } else if (targetChild === 'boy') {
+                    food.child = 'boy';
+                    food.status = 'confirmed';
+                } else if (targetChild === 'both') {
+                    const copy = JSON.parse(JSON.stringify(food));
+                    copy.id = genId();
+                    copy.child = 'boy';
+                    copy.status = 'confirmed';
+                    copy.createdAt = Date.now() + 1;
+                    foods.push(copy);
+                    food.child = 'girl';
+                    food.status = 'confirmed';
+                } else if (targetChild === 'reject') {
+                    food.status = 'rejected';
+                    food.child = null;
+                }
+                saveFoods();
+                renderAll();
+            }
+        });
+
+        // 搭配
+        document.getElementById('btnMatch').addEventListener('click', function() {
+            const timeFilter = document.getElementById('matchTime').value;
+            const diffFilter = document.getElementById('matchDifficulty').value;
+            const result = generateMatch(timeFilter, diffFilter);
+            currentMatchResult = result;
+            renderMatchResult();
+        });
+        document.getElementById('btnMatchRefresh').addEventListener('click', function() {
+            document.getElementById('btnMatch').click();
+        });
+
+        // 库存弹窗
+        const stockModal = document.getElementById('stockModal');
+        document.getElementById('btnStockEdit').addEventListener('click', function() {
+            renderStockEditModal();
+            stockModal.classList.remove('hidden');
+        });
+        document.getElementById('btnStockModalClose').addEventListener('click', function() {
+            stockModal.classList.add('hidden');
+        });
+        document.getElementById('btnStockModalSave').addEventListener('click', function() {
+            const items = document.querySelectorAll('.stock-edit-item');
+            const newStock = {};
+            items.forEach(el => {
+                const name = el.dataset.name;
+                const qty = parseFloat(el.querySelector('input').value) || 0;
+                const unit = el.dataset.unit || '个';
+                newStock[name] = { qty, unit };
+            });
+            stock = newStock;
+            saveStock();
+            stockModal.classList.add('hidden');
+            renderAll();
+        });
+        document.getElementById('btnAddStockItem').addEventListener('click', function() {
+            const name = document.getElementById('newStockName').value.trim();
+            const unit = document.getElementById('newStockUnit').value.trim() || '个';
+            if (!name) { alert('请输入食材名称'); return; }
+            if (stock[name]) { alert('已存在该食材'); return; }
+            stock[name] = { qty: 0, unit: unit };
+            document.getElementById('newStockName').value = '';
+            document.getElementById('newStockUnit').value = '';
+            renderStockEditModal();
+        });
+
+        function renderStockEditModal() {
+            const container = document.getElementById('stockEditList');
+            const keys = Object.keys(stock);
+            if (keys.length === 0) {
+                container.innerHTML = '<div style="color:var(--text-muted);padding:10px 0;">暂无食材，请添加</div>';
+                return;
+            }
+            container.innerHTML = keys.map(key => {
+                const item = stock[key];
+                return `<div class="stock-edit-item" data-name="${key}" data-unit="${item.unit}">
+                            <span class="name">${key}</span>
+                            <input type="number" step="0.1" value="${item.qty}" min="0" />
+                            <span class="unit">${item.unit}</span>
+                            <button class="btn-sm" data-del="${key}">✕</button>
+                        </div>`;
+            }).join('');
+            container.querySelectorAll('[data-del]').forEach(el => {
+                el.addEventListener('click', function() {
+                    const name = this.dataset.del;
+                    if (confirm(`删除食材「${name}」？`)) {
+                        delete stock[name];
+                        renderStockEditModal();
+                    }
+                });
+            });
+        }
+
+        document.getElementById('btnStockReset').addEventListener('click', function() {
+            if (confirm('重置库存为默认值？')) {
+                stock = JSON.parse(JSON.stringify(DEFAULT_STOCK));
+                saveStock();
+                renderAll();
+            }
+        });
+
+        // 清空
+        document.getElementById('btnClearCurrent').addEventListener('click', function() {
+            const label = getChildLabel(currentChild);
+            if (confirm(`确定清空「${label}」的所有记录吗？`)) {
+                if (currentChild === 'pending') {
+                    foods = foods.filter(f => f.status !== 'pending' && f.status !== 'rejected');
+                } else {
+                    foods = foods.filter(f => f.child !== currentChild);
+                }
+                saveFoods();
+                currentMatchResult = null;
+                renderAll();
+            }
+        });
+        document.getElementById('btnClearAll').addEventListener('click', function() {
+            if (confirm('⚠️ 确定清空全部数据吗？')) {
+                foods = [];
+                cookHistory = [];
+                saveFoods();
+                saveHistory();
+                currentMatchResult = null;
+                renderAll();
+            }
+        });
+
+        // 统计切换
+        document.querySelectorAll('[data-period]').forEach(el => {
+            el.addEventListener('click', function() {
+                document.querySelectorAll('[data-period]').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                renderStats(this.dataset.period);
+            });
+        });
+
+        // 点击模态框外部关闭
+        stockModal.addEventListener('click', function(e) {
+            if (e.target === this) this.classList.add('hidden');
+        });
+        document.getElementById('usageModal').addEventListener('click', function(e) {
+            if (e.target === this) closeUsageModal();
+        });
+
+        // ============================================================
+        //  初始化
+        // ============================================================
+        loadData();
+
+        if (foods.length === 0) {
+            const now = Date.now();
+            foods = [{
+                id: genId(),
+                name: '肉末蒸蛋',
+                child: 'girl',
+                status: 'confirmed',
+                time: '快速',
+                difficulty: '简单',
+                ingredients: ['鸡蛋', '肉末'],
+                createdAt: now - 200000,
+                trial: null
+            }, {
+                id: genId(),
+                name: '番茄炒蛋',
+                child: 'boy',
+                status: 'confirmed',
+                time: '快速',
+                difficulty: '简单',
+                ingredients: ['番茄', '鸡蛋'],
+                createdAt: now - 150000,
+                trial: null
+            }, {
+                id: genId(),
+                name: '芝士焗饭',
+                child: null,
+                status: 'pending',
+                time: '正常',
+                difficulty: '中等',
+                ingredients: ['米饭', '芝士', '火腿'],
+                createdAt: now - 100000,
+                trial: { done: true, date: now - 50000 }
+            }, {
+                id: genId(),
+                name: '牛油果沙拉',
+                child: null,
+                status: 'pending',
+                time: '快速',
+                difficulty: '简单',
+                ingredients: ['牛油果', '生菜'],
+                createdAt: now - 80000,
+                trial: { done: false }
+            }];
+            saveFoods();
+        }
+
+        renderAll();
+        console.log('🍱 家庭膳食管家已启动！');
+        console.log('💡 孩子称呼可在 CONFIG 中修改');
+        console.log('📌 记录食物时不扣库存，制作时才扣减');
+    </script>
+</body>
+</html>
