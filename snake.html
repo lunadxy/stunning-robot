@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>贪吃蛇分身对战</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#111;color:#fff;text-align:center;padding:10px;overflow:hidden}
+canvas{background:#1a1a1a;border:4px solid #444;max-width:100%;height:auto}
+#info{font-size:22px;margin-bottom:8px}
+#pop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10;padding-top:22vh}
+#pop h2{font-size:40px;color:#ff5555;margin-bottom:20px}
+#chipText{font-size:22px;color:#ffd700;margin-bottom:30px}
+#pop button{padding:14px 32px;font-size:22px;margin:0 10px;border-radius:8px;border:none}
+</style>
+</head>
+<body>
+<div id="info">你(绿) VS AI分身(红)</div>
+<canvas id="game" width="720" height="720"></canvas>
+<div id="pop">
+    <h2 id="resText"></h2>
+    <div id="chipText"></div>
+    <button onclick="revive()">复活</button>
+    <button onclick="restartGame()">再来一局</button>
+</div>
+
+<script>
+const canvas=document.getElementById('game');
+const ctx=canvas.getContext('2d');
+const pop=document.getElementById('pop');
+const resText=document.getElementById('resText');
+const chipText=document.getElementById('chipText');
+
+const size=24;
+const w=canvas.width/size;
+const h=canvas.height/size;
+
+let me,ai,foods;
+let dx,dy,aidx,aidy;
+let chip=100;
+let gameRunning=false;
+
+document.addEventListener('keydown',e=>{
+    if(!gameRunning) return;
+    if(e.key==='ArrowLeft'&&dx!==1){dx=-1;dy=0;}
+    if(e.key==='ArrowRight'&&dx!==-1){dx=1;dy=0;}
+    if(e.key==='ArrowUp'&&dy!==1){dx=0;dy=-1;}
+    if(e.key==='ArrowDown'&&dy!==-1){dx=0;dy=1;}
+})
+
+function initGame(){
+    me=[{x:4,y:4}];
+    ai=[{x:w-5,y:h-5}];
+    dx=1; dy=0;
+    aidx=-1; aidy=0;
+    spawnFood();
+    pop.style.display="none";
+    gameRunning=true;
+}
+
+function spawnFood(){
+    foods=[];
+    for(let i=0;i<2;i++){
+        let x,y;
+        do{
+            x=Math.floor(Math.random()*(w-6))+3;
+            y=Math.floor(Math.random()*(h-6))+3;
+        }while(foods.some(f=>f.x===x&&f.y===y));
+        foods.push({x,y});
+    }
+}
+
+//AI增加规避自身身体判断，防止吃完食物撞自己
+function aiThink(){
+    const head=ai[0];
+    const t=foods[0];
+    let ndx=aidx,ndy=aidy;
+    if(t.x>head.x) ndx=1,ndy=0;
+    else if(t.x<head.x) ndx=-1,ndy=0;
+    else if(t.y>head.y) ndx=0,ndy=1;
+    else if(t.y<head.y) ndx=0,ndy=-1;
+
+    const nx=head.x+ndx, ny=head.y+ndy;
+    //边界 或者下一步是自己身体，就转向
+    const hitSelf = ai.some((p,i)=>i>0 && p.x===nx && p.y===ny);
+    if(nx<=2||nx>=w-3||ny<=2||ny>=h-3 || hitSelf){
+        [ndx,ndy]=[aidy,-aidx];
+    }
+    aidx=ndx; aidy=ndy;
+}
+
+function showPopup(msg){
+    gameRunning=false;
+    chip -=20;
+    resText.innerText=msg;
+    chipText.innerText=`筹码：${chip}（扣除20）`;
+    pop.style.display="block";
+}
+
+function revive(){
+    me=[{x:4,y:4}];
+    ai=[{x:w-5,y:h-5}];
+    dx=1; dy=0;
+    aidx=-1; aidy=0;
+    pop.style.display="none";
+    gameRunning=true;
+}
+
+function restartGame(){
+    chip=100;
+    initGame();
+}
+
+function checkHit(mh,ah){
+    if(mh.x<0||mh.x>=w||mh.y<0||mh.y>=h) return "loseMe";
+    if(ah.x<0||ah.x>=w||ah.y<0||ah.y>=h) return "loseAi";
+
+    for(let i=1;i<me.length;i++) if(mh.x===me[i].x&&mh.y===me[i].y) return "loseMe";
+    for(let i=1;i<ai.length;i++) if(ah.x===ai[i].x&&ah.y===ai[i].y) return "loseAi";
+
+    for(let i=1;i<ai.length;i++) if(mh.x===ai[i].x&&mh.y===ai[i].y) return "loseMe";
+    for(let i=1;i<me.length;i++) if(ah.x===me[i].x&&ah.y===me[i].y) return "loseAi";
+
+    if(mh.x===ah.x&&mh.y===ah.y) return Math.random()>0.5?"loseMe":"loseAi";
+    return null;
+}
+
+function loop(){
+    if(gameRunning){
+        const mh={x:me[0].x+dx,y:me[0].y+dy};
+        me.unshift(mh);
+        let playerEat = foods.some(f=>mh.x===f.x&&mh.y===f.y);
+        if(!playerEat) me.pop();
+
+        aiThink();
+        const ah={x:ai[0].x+aidx,y:ai[0].y+aidy};
+        ai.unshift(ah);
+        let aiEat = foods.some(f=>ah.x===f.x&&ah.y===f.y);
+        if(!aiEat) ai.pop();
+
+        foods = foods.filter(f=> !((mh.x===f.x&&mh.y===f.y)||(ah.x===f.x&&ah.y===f.y)) );
+        if(foods.length===0) spawnFood();
+
+        //移动完成之后才做碰撞检测，修复吃完食物立刻撞自己的bug
+        const hit=checkHit(mh,ah);
+        if(hit==="loseMe") showPopup("我输");
+        else if(hit==="loseAi") showPopup("AI输！你胜利");
+    }
+
+    ctx.fillStyle="#1a1a1a";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle="#ffd700";
+    foods.forEach(f=>ctx.fillRect(f.x*size,f.y*size,size-2,size-2));
+    ctx.fillStyle="#2ecc71";
+    me.forEach(p=>ctx.fillRect(p.x*size,p.y*size,size-2,size-2));
+    ctx.fillStyle="#e74c3c";
+    ai.forEach(p=>ctx.fillRect(p.x*size,p.y*size,size-2,size-2));
+
+    setTimeout(loop,180);
+}
+
+initGame();
+loop();
+</script>
+</body>
+</html>
